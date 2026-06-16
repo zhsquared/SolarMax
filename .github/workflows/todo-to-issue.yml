@@ -1,0 +1,27 @@
+name: Issue Tracker
+
+on:
+  push:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  scan:
+    name: Scan for task comments
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: alstr/todo-to-issue-action@v5
+        with:
+          AUTO_ASSIGN: "true"
+          CLOSE_ISSUES: "true"
+          INSERT_ISSUE_URLS: "false"
+          IGNORE: '.*\.md$,LICENSE,\.github/'
+          IDENTIFIERS: '[{"name": "TODO",  "labels": ["todo"]},
+                         {"name": "FIXME", "labels": ["bug", "fixme"]},
+                         {"name": "HACK",  "labels": ["technical-debt"]}]'
