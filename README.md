@@ -1,40 +1,39 @@
-<div align="center">
+# SolarMax
 
-<img src=".github/assets/fn-logo-dark-v2.svg" alt="ForgeNest Inc." width="260"/>
+ESP32 firmware for a single-axis solar tracking system. Tracks the sun using astronomical calculations (NOAA Solar Calculator) rather than light sensors — no calibration needed after install.
 
-# PROJECT_NAME
+## Hardware
 
-One-line description.
+- ESP32 DevKit V1
+- BTS7960 43A H-bridge motor driver
+- DC worm gear motor with potentiometer position feedback
+- DS3231 RTC (I2C) + WiFi NTP for timekeeping
+- 3-cup anemometer for wind stow protection
 
-</div>
+## Builds
 
----
+| Environment | Command | Use |
+|---|---|---|
+| `esp32dev` | `pio run -e esp32dev` | Real hardware |
+| `simulate` | `pio run -e simulate` | ESP32 without sensors — full state machine on Serial at 120× speed |
+| `native` | `pio test -e native` | Unit tests on Mac, no ESP32 needed |
 
-## Setup
+## Configuration
+
+Edit [src/config.h](src/config.h) before flashing:
+
+- `LATITUDE` / `LONGITUDE` — install site coordinates
+- `WIFI_SSID` / `WIFI_PASS` — for NTP sync
+- `POT_ADC_MIN` / `POT_ADC_MAX` — run `runCalibration()` on first assembly to find these
+
+## State Machine
+
+`INIT` → `TRACKING` → `STOW` (wind ≥ 20 mph) → `TRACKING` / `NIGHT` (sun < 5° elevation) → `TRACKING`
+
+## Unit Tests
 
 ```bash
-git clone https://github.com/forgenest-inc/PROJECT_NAME.git
-cd PROJECT_NAME
-pip install -r requirements.txt
-pytest
+pio test -e native
 ```
 
-## Branches
-
-| Branch | Purpose |
-|---|---|
-| `main` | Production. |
-| `release` | Release prep, branched from `develop`. |
-| `develop` | Integration. Features merge here first. |
-| `feature/*` | New work, branched from `develop`. |
-| `hotfix/*` | Emergency fixes, branched from `main`. |
-
-## Automation
-
-- **CI** runs the  test suite on every push and pull request to `main`, `release`, or `develop`.
-- **CI On Demand** runs the test suite on any other branch when the commit message contains `[ci]`.
-- **Issue Tracker** scans new commits for task-style comments in source code (`TODO`, `FIXME`, `HACK`) and opens a GitHub issue assigned to the commit author. The issue closes automatically when the comment is removed.
-
-## License
-
-Proprietary — © 2025 ForgeNest Inc. See [LICENSE](LICENSE).
+Tests cover solar noon elevation for all three solstice/equinox cases, morning/afternoon panel sign convention, mechanical limit clamping, and night detection.
