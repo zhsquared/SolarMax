@@ -1,10 +1,17 @@
 % SolarMax wiring diagrams
 % Compile:  pdflatex wiring_diagram.tex   (run from docs/)
-% Produces: page 1 = legend + power wiring, page 2 = signal/sensor wiring.
+% Produces: p1 = power distribution, p2 = control/sensor map, p3 = real circuits.
+%
+% Block/pin maps (p1-p2) use plain TikZ matrices: the right idiom for a
+% "what-connects-to-what" map. The actual circuits (p3: voltage dividers,
+% 5 V rail diode) use circuitikz, which draws real component symbols and is
+% the natural bridge to the KiCad schematic.
 
 \documentclass[landscape,a4paper]{article}
 \usepackage[margin=1cm,landscape]{geometry}
+\usepackage{amsmath}
 \usepackage{tikz}
+\usepackage{circuitikz}
 \usepackage{xcolor}
 \usepackage{adjustbox}
 \usetikzlibrary{matrix,positioning,calc}
@@ -25,8 +32,9 @@
 % ---- Styles -----------------------------------------------------------------
 \tikzset{
   modlabel/.style={font=\bfseries\small},
+  % block of stacked pins; #1 = box width
   mod/.style={matrix of nodes, draw, rounded corners, inner sep=3pt,
-    nodes={draw, anchor=center, minimum width=#1, minimum height=0.62cm,
+    nodes={draw, anchor=center, minimum width=#1, minimum height=0.7cm,
            font=\footnotesize, fill=white},
     row sep=-\pgflinewidth, column sep=-\pgflinewidth},
   mod/.default=2.6cm,
@@ -35,14 +43,7 @@
 }
 
 \newcommand{\legendbox}[2]{\tikz\draw[line width=2.4pt,#1](0,0)--(0.7,0);\,#2}
-
-\begin{document}
-
-\begin{center}{\Large\bfseries SolarMax — Wiring Diagrams}\\[2pt]
-\small Colored wires by net. All grounds are common. Pin names match \texttt{include/config.h}.\end{center}
-
-\noindent\fbox{\parbox{\dimexpr\textwidth-2\fboxsep-2\fboxrule\relax}{%
-\textbf{Wire color legend:}\quad
+\newcommand{\netlegend}{%
 \legendbox{net12v}{+12\,V}\quad
 \legendbox{netgnd}{GND}\quad
 \legendbox{net5v}{+5\,V}\quad
@@ -52,194 +53,225 @@
 \legendbox{neti2c}{I\textsuperscript{2}C}\quad
 \legendbox{netlim}{Limit switch}\quad
 \legendbox{netanem}{Anemometer sig}\quad
-\legendbox{netana}{Analog (pot/LDR)}%
-}}
+\legendbox{netana}{Analog (pot/LDR)}}
 
-\vspace{6pt}
+\begin{document}
+
+\begin{center}{\Large\bfseries SolarMax — Wiring Diagrams}\\[2pt]
+\small Visual companion to \texttt{wiring.md} (the tables are the authoritative per-pin
+detail). Wires colored by net; all grounds are one common ground. Pin names match
+\texttt{include/config.h}.\end{center}
+
+\noindent\fbox{\parbox{\dimexpr\textwidth-2\fboxsep-2\fboxrule\relax}{%
+\textbf{Wire color legend:}\quad\netlegend}}
+
+\vspace{4pt}
 \begin{center}{\large\bfseries 1. Power Distribution}\end{center}
 
-\begin{adjustbox}{max width=\textwidth, max totalheight=0.78\textheight, center}
+\begin{adjustbox}{max width=\textwidth, max totalheight=0.80\textheight, center}
 \begin{tikzpicture}
 
-\matrix[mod=2.6cm] (psu) { 12\,V 20\,A PSU \\ V+ \\ V$-$ \\ };
-\node[modlabel, above=1pt of psu] {Mains supply};
+% ---- modules on a clean two-row grid; GND-dropping row-1 boxes sit in the
+%      gaps between row-2 boxes so no drop crosses a box --------------------
+\matrix[mod=2.6cm, anchor=north] (psu)  at (0,0)    { 12\,V 20\,A PSU \\ V+ \\ V$-$ \\ };
+\matrix[mod=2.2cm, anchor=north] (msw)  at (4,0)    { Main switch \\ IN \\ OUT \\ };
+\matrix[mod=2.6cm, anchor=north] (buck) at (8.5,0)  { Buck (5\,V) \\ IN+ \\ IN$-$ \\ OUT+ \\ OUT$-$ \\ };
+\matrix[mod=2.6cm, anchor=north] (esp)  at (14,0)   { ESP32 \\ 5V (VIN) \\ 3V3 \\ GND \\ };
 
-\matrix[mod=2.2cm, right=1.5cm of psu] (msw) { Main switch \\ IN \\ OUT \\ };
-\node[modlabel, above=1pt of msw] {ON / OFF};
-
-\matrix[mod=2.6cm, right=1.5cm of msw] (buck)
-  { Buck (5\,V) \\ IN+ \\ IN$-$ \\ OUT+ \\ OUT$-$ \\ };
-\node[modlabel, above=1pt of buck] {Buck converter};
-
-\matrix[mod=2.6cm, right=2.4cm of buck] (esp)
-  { ESP32 \\ 5V (VIN) \\ GND \\ 3V3 \\ };
-\node[modlabel, above=1pt of esp] {Controller};
-
-\matrix[mod=2.2cm, below=2.8cm of msw] (estop) { E-STOP \\ NC-in \\ NC-out \\ };
-\node[modlabel, above=1pt of estop] {Emergency stop (NC)};
-
-\matrix[mod=2.8cm, right=1.6cm of estop] (rly)
+\matrix[mod=2.2cm, anchor=north] (estop) at (2,-5.5) { E-STOP \\ NC-in \\ NC-out \\ };
+\matrix[mod=2.8cm, anchor=north] (rly)   at (6.5,-5.5)
   { E-stop relay 40\,A \\ 30 (in) \\ 87 (out) \\ 86 (coil) \\ 85 (coil) \\ };
-\node[modlabel, above=1pt of rly] {Motor cut-off};
-
-\matrix[mod=2.8cm, below=2.8cm of esp] (bts)
+\matrix[mod=2.8cm, anchor=north] (bts)   at (11,-5.5)
   { BTS7960 \\ B+ \\ B$-$ \\ VCC \\ GND \\ M+ \\ M$-$ \\ };
-\node[modlabel, above=1pt of bts] {Motor driver};
+\matrix[mod=2.4cm, anchor=north] (mot)   at (16.5,-6) { Motor (50ZY) \\ lead A \\ lead B \\ };
 
-\matrix[mod=2.4cm, right=2.6cm of bts] (mot)
-  { Motor (50ZY) \\ lead A \\ lead B \\ };
-\node[modlabel, above=1pt of mot] {Worm-gear motor};
+\node[modlabel, above=1pt of psu]  {Mains supply};
+\node[modlabel, above=1pt of msw]  {ON / OFF};
+\node[modlabel, above=1pt of buck] {Buck converter};
+\node[modlabel, above=1pt of esp]  {Controller};
+\node[modlabel, above=1pt of estop]{Emergency stop (NC)};
+\node[modlabel, above=1pt of rly]  {Motor cut-off};
+\node[modlabel, above=1pt of bts]  {Motor driver};
+\node[modlabel, above=1pt of mot]  {Worm-gear motor};
+
+% Schottky diode in the 5 V line, aligned with the ESP 5V pin row
+\node[draw,fill=net3v3!30,font=\scriptsize,inner sep=2pt] (d5) at (11.4,-0.95)
+  {Schottky $\triangleright\!|$};
 
 % ===== 12 V + (red) =====
-\draw[pwr,net12v] (psu-2-1.east) -- (msw-2-1.west);                 % PSU V+ -> MAIN IN
-\draw[pwr,net12v] (msw-3-1.east) -- (buck-2-1.west);               % MAIN OUT -> buck IN+
-\draw[pwr,net12v] (msw-3-1.south) |- (rly-2-1.west);              % MAIN OUT -> relay 30
-\draw[pwr,net12v] (rly-2-1.west) -- (estop-2-1.east);            % relay 30 (switched V+) -> E-stop NC-in
-\draw[pwr,net12v] (estop-3-1.east) |- (rly-4-1.west);            % E-stop NC-out -> relay 86 (coil)
-\draw[pwr,net12v] (rly-3-1.east) -| (bts-2-1.west);              % relay 87 -> BTS B+
+\draw[pwr,net12v] (psu-2-1.east) -- (msw-2-1.west);          % PSU V+  -> main IN
+\draw[pwr,net12v] (msw-3-1.east) -- (buck-2-1.west);         % main OUT -> buck IN+
+\draw[pwr,net12v] (msw-3-1.south) |- (rly-2-1.west);         % main OUT -> relay 30
+\draw[pwr,net12v] (rly-2-1.west) -- (estop-2-1.east);        % relay 30 (sw V+) -> E-stop NC-in
+\draw[pwr,net12v] (estop-3-1.east) -- ++(0.45,0) |- (rly-4-1.west); % E-stop NC-out -> relay 86 coil
+\draw[pwr,net12v] (rly-3-1.east) -- ++(0.45,0) |- (bts-2-1.west);   % relay 87 -> BTS B+
 
-% ===== GND bus (black) — common ground =====
-\coordinate (gy) at ([yshift=-0.9cm]bts.south);
-\draw[pwr,netgnd] (psu.west |- gy) -- (mot.east |- gy);
-\foreach \p in {psu-3-1, buck-3-1, buck-5-1, esp-3-1, bts-3-1, bts-5-1, rly-5-1}
-  { \draw[pwr,netgnd] (\p.south) -- (\p.south |- gy); }
+% ===== GND (black) — one common ground bus below everything =====
+\coordinate (gL) at (-1.2,-11.6);
+\coordinate (gR) at (19.0,-11.6);
+\draw[pwr,netgnd] (gL) -- (gR);
+\draw[pwr,netgnd] (psu-3-1.south)  -- (psu-3-1.south  |- gL);  % PSU V-
+\draw[pwr,netgnd] (esp-4-1.south)  -- (esp-4-1.south  |- gL);  % ESP GND (bottom pin)
+\draw[pwr,netgnd] (rly-5-1.south)  -- (rly-5-1.south  |- gL);  % relay 85 coil
+% buck: two ground pins, linked up the right edge then one drop
+\draw[pwr,netgnd] (buck-3-1.east) -- ++(0.35,0) |- (buck-5-1.east);
+\draw[pwr,netgnd] (buck-5-1.south) -- (buck-5-1.south |- gL);
+% BTS: B- and GND taken out the LEFT edge (clear of M+/M-) and down to the bus
+\path (bts-3-1.west) ++(-0.25,0) coordinate (btsg);
+\draw[pwr,netgnd] (bts-3-1.west) -- (btsg) -- (btsg |- gL);
+\draw[pwr,netgnd] (bts-5-1.west) -- (bts-5-1.west -| btsg);
 
-% ===== 5 V (orange) — buck -> Schottky diode -> ESP 5V pin =====
-\node[draw,fill=yellow!30,font=\scriptsize,inner sep=2pt] (d5) at ($(buck.east)!0.5!(esp.west)$) {Schottky $\triangleright\!|$};
-\draw[pwr,net5v] (buck-4-1.east) -- (d5.west);
+% ===== 5 V (orange) — buck OUT+ -> Schottky -> ESP 5V -> BTS VCC =====
+\draw[pwr,net5v] (buck-4-1.east) -- ++(0.4,0) |- (d5.west);
 \draw[pwr,net5v] (d5.east) -- (esp-2-1.west);
-\draw[pwr,net5v] (esp-2-1.east) -- ++(0.3,0) |- (bts-4-1.east);   % ESP 5V -> BTS VCC
+\draw[pwr,net5v] (esp-2-1.west) -- ++(-0.15,0) |- (bts-4-1.east); % ESP 5V -> BTS VCC
 
 % ===== Motor (purple) =====
-\draw[pwr,netmot] (bts-6-1.east) -- (mot-2-1.west);
-\draw[pwr,netmot] (bts-7-1.east) -- (mot-3-1.west);
+\draw[pwr,netmot] (bts-6-1.east) -- ++(0.6,0) |- (mot-2-1.west);
+\draw[pwr,netmot] (bts-7-1.east) -- ++(1.0,0) |- (mot-3-1.west);
 
-\node[align=left, font=\scriptsize, below=0.6cm of estop, text width=7cm]
-  {\textbf{Main switch} breaks 12 V+ to everything (ON/OFF).\\[2pt]
-   \textbf{E-stop} (red mushroom, NC) is in the relay \emph{coil}: pressing it — or any broken
-   wire — drops the coil, the relay opens, and \textbf{motor power is cut}. Fail-safe. The
-   self-locking worm gear then holds the panel.\\[2pt]
-   The E-stop button only carries the small coil current; the \textbf{relay} (40 A) carries the
-   $\sim$19 A motor current. \textbf{12 AWG} on the motor path.};
-
-\node[align=left, font=\scriptsize, right=0.4cm of mot, text width=4.2cm]
-  {ESP32 is powered from the buck via the \textbf{5V pin}. The \textbf{Schottky diode} lets you
-   plug USB in anytime to flash. \textbf{USB = programming only.}};
+% ---- explanatory text in the (previously empty) right margin ----
+\node[align=left, font=\scriptsize, anchor=north west, text width=6.2cm] at (19.6,0) {%
+\textbf{How the safety chain works}\\[3pt]
+\textbf{Main switch} breaks 12\,V+ to everything (ON/OFF).\\[3pt]
+\textbf{E-stop} (red mushroom, NC) sits in the relay \emph{coil}: pressing it — or any
+broken wire — drops the coil, the relay opens, and \textbf{motor power is cut}. Fail-safe.
+The self-locking worm gear then holds the panel.\\[3pt]
+The E-stop button carries only the small coil current; the \textbf{40\,A relay} carries the
+$\sim$19\,A motor current. Use \textbf{12\,AWG} on the motor path.\\[6pt]
+\textbf{Powering / programming}\\[3pt]
+The ESP32 runs from the buck via its \textbf{5V pin}. The \textbf{Schottky diode} lets you
+plug USB in anytime to flash without conflict. \textbf{USB = programming only.}};
 
 \end{tikzpicture}
 \end{adjustbox}
 
 % =============================================================================
 \newpage
-\begin{center}{\large\bfseries 2. Control, Sensor \& Power/Ground Wiring}\\[1pt]
-\small Signal wires go left to the ESP32. Every power and ground pin is shown on the right
-with a colored tag. \textbf{All GND tags are the same common ground.}\end{center}
+\begin{center}{\large\bfseries 2. Control \& Sensor Wiring}\\[1pt]
+\small ESP32 in the centre, mirroring the DevKit's two pin headers: \textbf{motor + feedback
+on the left}, \textbf{sensors on the right}. Power/ground pins tag out to the far edges.
+\textbf{Every GND tag is the one common ground.}\end{center}
 
-\begin{adjustbox}{max width=\textwidth, max totalheight=0.86\textheight, center}
+\begin{adjustbox}{max width=\textwidth, max totalheight=0.84\textheight, center}
 \begin{tikzpicture}[
-  tagG/.style={draw,rounded corners,font=\tiny\bfseries,inner sep=1.6pt,fill=netgnd!20},
-  tag3/.style={draw,rounded corners,font=\tiny\bfseries,inner sep=1.6pt,fill=net3v3!28},
-  tag5/.style={draw,rounded corners,font=\tiny\bfseries,inner sep=1.6pt,fill=net5v!22}]
+  tagG/.style={draw,rounded corners,font=\scriptsize\bfseries,inner sep=2pt,fill=netgnd!20},
+  tag3/.style={draw,rounded corners,font=\scriptsize\bfseries,inner sep=2pt,fill=net3v3!30},
+  tag5/.style={draw,rounded corners,font=\scriptsize\bfseries,inner sep=2pt,fill=net5v!25}]
 
-\matrix[mod=2.4cm] (e)
+% ---- ESP32 in the centre ----
+\matrix[mod=3.0cm, anchor=north] (e) at (0,0)
   { ESP32 \\ GPIO25 \\ GPIO26 \\ GPIO27 \\ GPIO14 \\ GPIO21 \\ GPIO22 \\
     GPIO34 \\ GPIO32 \\ GPIO33 \\ GPIO35 \\ GPIO36 \\ GPIO39 \\ };
 \node[modlabel, above=1pt of e] {ESP32 DevKit V1};
 
-\matrix[mod=3.4cm, right=4.5cm of e.north east, anchor=north west] (drv)
+% ---- LEFT column: motor driver + feedback ----
+\matrix[mod=3.6cm, anchor=north] (drv) at (-7,1.4)
   { BTS7960 (control) \\ RPWM \\ LPWM \\ R\_EN \\ L\_EN \\ VCC \\ GND \\ };
-\matrix[mod=3.4cm, below=3mm of drv] (rtc) { DS3231 RTC \\ SDA \\ SCL \\ VCC \\ GND \\ };
-\matrix[mod=3.4cm, below=3mm of rtc] (pot) { Potentiometer \\ end 1 \\ wiper \\ end 3 \\ };
-\matrix[mod=3.4cm, below=3mm of pot] (lcw) { Limit CW (west) \\ C \\ NO \\ };
-\matrix[mod=3.4cm, below=3mm of lcw] (lccw){ Limit CCW (east) \\ C \\ NO \\ };
-\matrix[mod=3.4cm, below=3mm of lccw](anem){ Anemometer \\ signal \\ 5V \\ GND \\ };
-\matrix[mod=3.4cm, below=3mm of anem](ldre){ LDR east \\ 3V3 in \\ ADC tap \\ GND \\ };
-\matrix[mod=3.4cm, below=3mm of ldre](ldrw){ LDR west \\ 3V3 in \\ ADC tap \\ GND \\ };
+\matrix[mod=3.6cm, anchor=north, below=4mm of drv] (rtc) { DS3231 RTC \\ SDA \\ SCL \\ VCC \\ GND \\ };
+\matrix[mod=3.6cm, anchor=north, below=4mm of rtc] (pot) { Potentiometer \\ end 1 \\ wiper \\ end 3 \\ };
 
-% ---- signal wires (ESP -> peripheral, left side) ----
-\draw[wire,netpwm] (e-2-1.east) -- (drv-2-1.west);
-\draw[wire,netpwm] (e-3-1.east) -- (drv-3-1.west);
-\draw[wire,netpwm] (e-4-1.east) -- (drv-4-1.west);
-\draw[wire,netpwm] (e-5-1.east) -- (drv-5-1.west);
-\draw[wire,neti2c] (e-6-1.east) -- (rtc-2-1.west);
-\draw[wire,neti2c] (e-7-1.east) -- (rtc-3-1.west);
-\draw[wire,netana] (e-8-1.east) -- (pot-3-1.west);
-\draw[wire,netlim] (e-9-1.east)  -- (lcw-3-1.west);
-\draw[wire,netlim] (e-10-1.east) -- (lccw-3-1.west);
+% ---- RIGHT column: sensors ----
+\matrix[mod=3.6cm, anchor=north] (lcw)  at (7,1.4)        { Limit CW (west) \\ C \\ NO \\ };
+\matrix[mod=3.6cm, anchor=north, below=4mm of lcw]  (lccw){ Limit CCW (east) \\ C \\ NO \\ };
+\matrix[mod=3.6cm, anchor=north, below=4mm of lccw] (anem){ Anemometer \\ signal \\ 5V \\ GND \\ };
+\matrix[mod=3.6cm, anchor=north, below=4mm of anem] (ldre){ LDR east \\ 3V3 in \\ ADC tap \\ GND \\ };
+\matrix[mod=3.6cm, anchor=north, below=4mm of ldre] (ldrw){ LDR west \\ 3V3 in \\ ADC tap \\ GND \\ };
+
+% ---- signal wires: ESP.west -> left peripherals ----
+\draw[wire,netpwm] (e-2-1.west) -- (drv-2-1.east);
+\draw[wire,netpwm] (e-3-1.west) -- (drv-3-1.east);
+\draw[wire,netpwm] (e-4-1.west) -- (drv-4-1.east);
+\draw[wire,netpwm] (e-5-1.west) -- (drv-5-1.east);
+\draw[wire,neti2c] (e-6-1.west) -- (rtc-2-1.east);
+\draw[wire,neti2c] (e-7-1.west) -- (rtc-3-1.east);
+\draw[wire,netana] (e-8-1.west) -- (pot-3-1.east);
+
+% ---- signal wires: ESP.east -> right peripherals ----
+\draw[wire,netlim]  (e-9-1.east)  -- (lcw-3-1.west);
+\draw[wire,netlim]  (e-10-1.east) -- (lccw-3-1.west);
 \draw[wire,netanem] (e-11-1.east) -- (anem-2-1.west);
-\draw[wire,netana] (e-12-1.east) -- (ldre-3-1.west);
-\draw[wire,netana] (e-13-1.east) -- (ldrw-3-1.west);
+\draw[wire,netana]  (e-12-1.east) -- (ldre-3-1.west);
+\draw[wire,netana]  (e-13-1.east) -- (ldrw-3-1.west);
 
-% ---- power / ground tags (peripheral -> tag, right side) ----
-% +5V
-\node[tag5,right=6mm of drv-6-1](t1){+5V};  \draw[wire,net5v](drv-6-1.east)--(t1.west);
-\node[tag5,right=6mm of anem-3-1](t2){+5V}; \draw[wire,net5v](anem-3-1.east)--(t2.west);
-% +3.3V
-\node[tag3,right=6mm of rtc-4-1](t3){+3.3V};  \draw[wire,net3v3](rtc-4-1.east)--(t3.west);
-\node[tag3,right=6mm of pot-2-1](t4){+3.3V};  \draw[wire,net3v3](pot-2-1.east)--(t4.west);
-\node[tag3,right=6mm of lcw-2-1](t5){+3.3V};  \draw[wire,net3v3](lcw-2-1.east)--(t5.west);
-\node[tag3,right=6mm of lccw-2-1](t6){+3.3V}; \draw[wire,net3v3](lccw-2-1.east)--(t6.west);
-\node[tag3,right=6mm of ldre-2-1](t7){+3.3V}; \draw[wire,net3v3](ldre-2-1.east)--(t7.west);
-\node[tag3,right=6mm of ldrw-2-1](t8){+3.3V}; \draw[wire,net3v3](ldrw-2-1.east)--(t8.west);
-% GND  (all the same common ground)
-\node[tagG,right=6mm of drv-7-1](g1){GND};  \draw[wire,netgnd](drv-7-1.east)--(g1.west);
-\node[tagG,right=6mm of rtc-5-1](g2){GND};  \draw[wire,netgnd](rtc-5-1.east)--(g2.west);
-\node[tagG,right=6mm of pot-4-1](g3){GND};  \draw[wire,netgnd](pot-4-1.east)--(g3.west);
-\node[tagG,right=6mm of anem-4-1](g4){GND}; \draw[wire,netgnd](anem-4-1.east)--(g4.west);
-\node[tagG,right=6mm of ldre-4-1](g5){GND}; \draw[wire,netgnd](ldre-4-1.east)--(g5.west);
-\node[tagG,right=6mm of ldrw-4-1](g6){GND}; \draw[wire,netgnd](ldrw-4-1.east)--(g6.west);
+% ---- power / ground tags out to the FAR edges ----
+% left peripherals tag to their .west
+\node[tag5,left=6mm of drv-6-1](lt1){+5V};   \draw[wire,net5v] (drv-6-1.west)--(lt1.east);
+\node[tagG,left=6mm of drv-7-1](lg1){GND};   \draw[wire,netgnd](drv-7-1.west)--(lg1.east);
+\node[tag3,left=6mm of rtc-4-1](lt2){+3.3V}; \draw[wire,net3v3](rtc-4-1.west)--(lt2.east);
+\node[tagG,left=6mm of rtc-5-1](lg2){GND};   \draw[wire,netgnd](rtc-5-1.west)--(lg2.east);
+\node[tag3,left=6mm of pot-2-1](lt3){+3.3V}; \draw[wire,net3v3](pot-2-1.west)--(lt3.east);
+\node[tagG,left=6mm of pot-4-1](lg3){GND};   \draw[wire,netgnd](pot-4-1.west)--(lg3.east);
+% right peripherals tag to their .east
+\node[tag3,right=6mm of lcw-2-1](rt1){+3.3V};  \draw[wire,net3v3](lcw-2-1.east)--(rt1.west);
+\node[tag3,right=6mm of lccw-2-1](rt2){+3.3V}; \draw[wire,net3v3](lccw-2-1.east)--(rt2.west);
+\node[tag5,right=6mm of anem-3-1](rt3){+5V};   \draw[wire,net5v] (anem-3-1.east)--(rt3.west);
+\node[tagG,right=6mm of anem-4-1](rg1){GND};   \draw[wire,netgnd](anem-4-1.east)--(rg1.west);
+\node[tag3,right=6mm of ldre-2-1](rt4){+3.3V}; \draw[wire,net3v3](ldre-2-1.east)--(rt4.west);
+\node[tagG,right=6mm of ldre-4-1](rg2){GND};   \draw[wire,netgnd](ldre-4-1.east)--(rg2.west);
+\node[tag3,right=6mm of ldrw-2-1](rt5){+3.3V}; \draw[wire,net3v3](ldrw-2-1.east)--(rt5.west);
+\node[tagG,right=6mm of ldrw-4-1](rg3){GND};   \draw[wire,netgnd](ldrw-4-1.east)--(rg3.west);
 
-\node[font=\scriptsize,align=left,below=4mm of ldrw.south west,anchor=north west,text width=11cm]
+% ---- note across the bottom ----
+\node[font=\scriptsize,align=center,below=8mm of ldrw.south,anchor=north,text width=15cm]
  {Every \textbf{GND} tag is the one common ground. \textbf{+5V} and \textbf{+3.3V} come from the
-  rails in Diagram 1. Limit switches: C $\to$ +3.3V, NO $\to$ GPIO (no GND pin). The LDR and
-  anemometer taps are the centre of the resistor dividers in Diagram 3.};
+  rails in Diagram~1. Limit switches: C\,$\to$\,+3.3V, NO\,$\to$\,GPIO (no GND pin). The LDR and
+  anemometer signal taps are the centre of the resistor dividers detailed in Diagram~3.};
 
 \end{tikzpicture}
 \end{adjustbox}
 
 % =============================================================================
 \newpage
-\begin{center}{\large\bfseries 3. Voltage Divider Details}\\[1pt]
-\small Two sensors need a resistor divider. Build these exactly — they protect the
-ESP32 and set the correct readings.\end{center}
+\begin{center}{\large\bfseries 3. Real Circuits — Dividers \& 5\,V Rail Diode}\\[1pt]
+\small Drawn with proper component symbols (this is the part that becomes a KiCad schematic).
+Build these exactly — they protect the ESP32 and set correct readings.\end{center}
 
-\vspace{1cm}
-\begin{adjustbox}{max width=\textwidth, center}
-\begin{tikzpicture}[
-  pinnode/.style={draw, rounded corners, minimum height=0.7cm, minimum width=1.8cm,
-                  font=\footnotesize, fill=white},
-  res/.style={draw, fill=yellow!15, minimum height=0.6cm, minimum width=1.2cm, font=\footnotesize},
-  node distance=1.1cm]
+\vspace{0.4cm}
+\begin{adjustbox}{max width=\textwidth, max totalheight=0.82\textheight, center}
+\begin{circuitikz}[american, scale=1.3, transform shape,
+    every label/.append style={font=\footnotesize}]
 
-% ---- Anemometer divider ----
-\node[font=\bfseries] (atitle) {Anemometer signal: 5\,V $\rightarrow$ 3.3\,V};
-\node[pinnode, below=0.6cm of atitle.west, anchor=west] (asig) {Anem. signal (5\,V)};
-\node[res, right=of asig] (ar1) {10\,k$\Omega$};
-\node[pinnode, right=of ar1, fill=cyan!12] (agpio) {GPIO35};
-\node[res, right=of agpio] (ar2) {20\,k$\Omega$};
-\node[pinnode, right=of ar2] (agnd) {GND};
-\draw[wire,netanem] (asig.east) -- (ar1.west);
-\draw[wire,netanem] (ar1.east) -- (agpio.west);
-\draw[wire,netgnd]  (agpio.east) -- (ar2.west);
-\draw[wire,netgnd]  (ar2.east) -- (agnd.west);
-\node[font=\scriptsize, below=0.2cm of agpio, text width=4cm, align=center]
-  {V$_{out}$ = 5\,V $\times\frac{20}{10+20}\approx$ 3.3\,V};
+% ===== (a) Anemometer signal divider 5 V -> 3.3 V =====
+\node[font=\bfseries] at (3.2,1.2) {(a)\ \ Anemometer signal:\ 5\,V $\rightarrow$ 3.3\,V};
+\draw[net12v, line width=1pt]
+  (0,0) node[left,font=\footnotesize,align=right]{Anem.\ signal\\(5\,V)}
+  to[R, l=$10\,\mathrm{k}\Omega$, color=black] (3.2,0) coordinate(tapA);
+\draw[netgnd, line width=1pt]
+  (tapA) to[R, l=$20\,\mathrm{k}\Omega$, color=black] (6.4,0) node[ground]{};
+\node[circ] at (tapA){};
+\draw[netanem, line width=1pt] (tapA) -- (3.2,-1.5)
+  node[below,font=\footnotesize,fill=netanem!12,draw,rounded corners,inner sep=2pt]{to GPIO35};
+\node[font=\footnotesize, align=center] at (3.2,-2.6)
+  {$V_{out}=5\,\mathrm{V}\times\dfrac{20}{10+20}\approx 3.3\,\mathrm{V}$};
 
-% ---- LDR divider ----
-\node[font=\bfseries, below=2.4cm of atitle.west, anchor=west] (ltitle) {LDR (each of the two): 3.3\,V — LDR — ADC — 10\,k$\Omega$ — GND};
-\node[pinnode, below=0.6cm of ltitle.west, anchor=west] (l3v3) {3.3\,V};
-\node[res, right=of l3v3, fill=orange!15] (lldr) {LDR};
-\node[pinnode, right=of lldr, fill=brown!15] (ladc) {GPIO36 / 39};
-\node[res, right=of ladc] (lr) {10\,k$\Omega$};
-\node[pinnode, right=of lr] (lgnd) {GND};
-\draw[wire,net3v3] (l3v3.east) -- (lldr.west);
-\draw[wire,netana] (lldr.east) -- (ladc.west);
-\draw[wire,netana] (ladc.east) -- (lr.west);
-\draw[wire,netgnd] (lr.east) -- (lgnd.west);
-\node[font=\scriptsize, below=0.2cm of ladc, text width=5cm, align=center]
+% ===== (b) LDR divider (x2) =====
+\begin{scope}[yshift=-5.8cm]
+\node[font=\bfseries] at (3.2,1.2) {(b)\ \ LDR (each of two):\ 3.3\,V — LDR — ADC — 10\,k$\Omega$ — GND};
+\draw[net3v3, line width=1pt]
+  (0,0) node[left,font=\footnotesize]{3.3\,V}
+  to[photoresistor, l=LDR, color=black] (3.2,0) coordinate(tapB);
+\draw[netgnd, line width=1pt]
+  (tapB) to[R, l=$10\,\mathrm{k}\Omega$, color=black] (6.4,0) node[ground]{};
+\node[circ] at (tapB){};
+\draw[netana, line width=1pt] (tapB) -- (3.2,-1.5)
+  node[below,font=\footnotesize,fill=netana!12,draw,rounded corners,inner sep=2pt]{to GPIO36 / 39 (ADC)};
+\node[font=\footnotesize, align=center] at (3.2,-2.5)
   {More light $\rightarrow$ lower LDR resistance $\rightarrow$ higher ADC reading};
+\end{scope}
 
-\end{tikzpicture}
+% ===== (c) 5 V rail Schottky diode =====
+\begin{scope}[yshift=-11.6cm]
+\node[font=\bfseries] at (3.2,1.2) {(c)\ \ 5\,V rail diode (lets USB stay pluggable)};
+\draw[net5v, line width=1pt]
+  (0,0) node[left,font=\footnotesize]{Buck OUT+}
+  to[sD, l=Schottky, color=black] (3.2,0)
+  node[right,font=\footnotesize,align=left]{\ ESP32 5V pin\\\ BTS7960 VCC\\\ anemometer +5V};
+\node[font=\footnotesize, align=center] at (1.6,-1.2)
+  {stripe (cathode) toward the ESP — blocks backfeed to USB};
+\end{scope}
+
+\end{circuitikz}
 \end{adjustbox}
 
 \end{document}
