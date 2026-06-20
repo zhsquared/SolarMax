@@ -4,6 +4,7 @@
 #include "motor_control.h"
 #include "sensors.h"
 #include "time_manager.h"
+#include "diagnostics.h"
 
 // ── State Machine ─────────────────────────────────────────────────────────────
 enum SystemState {
@@ -63,6 +64,8 @@ void setup() {
 
     // Uncomment the line below on first hardware assembly to calibrate the pot:
     // runCalibration(); while(true);
+
+    runSelfCheck();   // Print a peripheral health report before tracking starts
 
     state = STATE_INIT;
 }
@@ -133,13 +136,21 @@ void loop() {
             break;
 
         // ── NIGHT ─────────────────────────────────────────────────────────────
-        case STATE_NIGHT:
+        case STATE_NIGHT: {
+            static uint32_t lastNightPrintMs = 0;
+            if (millis() - lastNightPrintMs >= 10000) {
+                int localHour = (utc.hour() + 24 + TIMEZONE_OFFSET) % 24;
+                Serial.printf("[NIGHT] Waiting for sunrise... sim time %02d:%02d local\n",
+                              localHour, utc.minute());
+                lastNightPrintMs = millis();
+            }
             if (sa.aboveHorizon) {
                 Serial.println("[STATE] NIGHT → TRACKING (sunrise)");
                 state       = STATE_TRACKING;
                 lastTrackMs = 0;
             }
             break;
+        }
 
         // ── ERROR ─────────────────────────────────────────────────────────────
         case STATE_ERROR:
