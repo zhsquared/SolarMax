@@ -1,0 +1,487 @@
+% SolarMax — Wiring Reference (typeset companion to wiring.md)
+% Compile:  pdflatex wiring.tex   (run from docs/)
+% This is the human-readable, print-friendly version of wiring.md. The tables
+% here are the same authoritative per-pin detail, formatted for easy reading.
+
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1.8cm]{geometry}
+\usepackage{lmodern}
+\usepackage[table,svgnames]{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{xltabular}
+\usepackage{ragged2e}
+\usepackage{amssymb}
+\usepackage{textcomp}
+\usepackage{enumitem}
+\usepackage[most]{tcolorbox}
+\usepackage{hyperref}
+\usepackage{underscore}   % lets us write _ literally in pin/file names
+
+\hypersetup{colorlinks=true, linkcolor=NavyBlue, urlcolor=NavyBlue}
+
+% ---- palette ----------------------------------------------------------------
+\definecolor{headblue}{HTML}{1F4E79}
+\definecolor{rowgray}{HTML}{EEF3F8}
+\definecolor{okgreen}{HTML}{2E7D32}
+\definecolor{warnorange}{HTML}{B34700}
+\definecolor{infoblue}{HTML}{1565C0}
+
+% ---- status marks -----------------------------------------------------------
+\newcommand{\yes}{\textcolor{okgreen}{\textbf{\checkmark\ confirmed}}}
+\newcommand{\caution}{\textcolor{warnorange}{\textbf{!\ }}}
+\newcommand{\info}{\textcolor{infoblue}{\textbf{i\ }}}
+
+% ---- table column types -----------------------------------------------------
+\newcolumntype{P}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\Centering\arraybackslash}p{#1}}
+\newcolumntype{T}[1]{>{\RaggedRight\arraybackslash\ttfamily\footnotesize}p{#1}}
+\newcolumntype{L}{>{\RaggedRight\arraybackslash}X}
+\newcolumntype{N}{>{\Centering\arraybackslash}p{0.5cm}}
+\newcolumntype{Q}{>{\Centering\arraybackslash}p{0.85cm}}
+
+\renewcommand{\arraystretch}{1.25}
+\newcommand{\tc}[1]{\textcolor{white}{\textbf{#1}}}   % header cell text
+\newcommand{\nd}{\textrm{\textemdash}}                % "not applicable" cell (roman em-dash, ligature-safe in tt cols)
+
+% ---- callout boxes ----------------------------------------------------------
+\newtcolorbox{warnbox}{breakable, enhanced, colback=warnorange!6,
+  colframe=warnorange!75, boxrule=0.6pt, arc=2pt,
+  left=7pt, right=7pt, top=5pt, bottom=5pt}
+\newtcolorbox{notebox}{breakable, enhanced, colback=infoblue!5,
+  colframe=infoblue!55, boxrule=0.5pt, arc=2pt,
+  left=7pt, right=7pt, top=5pt, bottom=5pt}
+
+% tighter lists inside boxes
+\setlist[enumerate]{leftmargin=1.6em, topsep=2pt, itemsep=2pt}
+\setlist[itemize]{leftmargin=1.4em, topsep=2pt, itemsep=2pt}
+
+\newcommand{\sectionrule}{\vspace{2pt}\hrule height 0.4pt\vspace{8pt}}
+
+\begin{document}
+
+% =============================================================================
+\begin{center}
+  {\LARGE\bfseries SolarMax \nd\ Wiring Reference}\\[4pt]
+  {\small All pin assignments are defined in \texttt{include/config.h}.
+   The tables below are the authoritative per-pin detail; use them with the
+   colored diagrams in \texttt{wiring\_diagram.pdf} and
+   \texttt{wiring\_breadboard.pdf}.}
+\end{center}
+\vspace{4pt}
+
+\begin{notebox}
+\textbf{Related files}
+\begin{itemize}
+  \item \texttt{breadboard\_placement.md} \nd\ column-by-column placement map
+        (single source of truth for the breadboard).
+  \item \texttt{wiring\_breadboard.pdf} \nd\ \textbf{build from this.} Full
+        breadboard layout, every wire drawn.
+  \item \texttt{wiring\_diagram.pdf} \nd\ schematic overview (power distribution,
+        signal map, voltage-divider details). Good for understanding
+        \emph{what connects to what}.
+\end{itemize}
+Rebuild any diagram with \texttt{pdflatex <file>.tex}.
+\end{notebox}
+
+% =============================================================================
+\section*{Datasheet verification status}
+Checked against the PDFs in \texttt{../datasheets/} on 2026-06-19.
+
+\smallskip
+\rowcolors{2}{rowgray}{white}
+\begin{xltabular}{\textwidth}{@{}L T{3.2cm} L@{}}
+\toprule
+\rowcolor{headblue}\tc{Part} & \tc{Datasheet} & \tc{Result}\\
+\midrule\endhead
+ESP32 pin map (input-only 34--39, ADC1, no strapping pins used)
+  & esp32_datasheet_en.pdf & \yes\\
+BTS7960 pinout + 3.3\,V logic + 6--27\,V motor supply
+  & BTS7960 Motor Driver.pdf & \yes\ (resolved the level-shifter question)\\
+DS3231 I2C address 0x68 & DS3231.pdf & \yes\\
+Potentiometer (P160 rotary, 3-terminal) & p160.pdf & \yes\\
+\textbf{Anemometer = QS-FS powered sensor, not a reed switch}
+  & C2192-002_datasheet.pdf
+  & \caution\textbf{wiring corrected} \nd\ see anemometer section\\
+LDR / photocell & SEN-09088.pdf
+  & \caution image-only PDF, not machine-readable; wiring is standard
+    2-terminal photocell\\
+Solar panel (Renogy 50\,W) & 50D-SS-Datasheet.pdf
+  & \info this is the tracked panel, not control wiring\\
+\bottomrule
+\end{xltabular}
+
+\smallskip
+\noindent\textbf{Motor:} 5882-50ZY identified from the model number
+(stall $\sim$15--19\,A, max 200\,kg$\cdot$cm). \textbf{Confirm the gear-ratio/RPM
+variant ordered} \nd\ only the high-ratio (low-RPM) versions meet the 20\,N$\cdot$m
+wind-holding requirement; the fast 440\,RPM version is $\sim$10$\times$ too weak.
+
+\smallskip
+\noindent\textbf{Limit switches:} REIFENG mechanical endstop selected (SPDT
+C/NO/NC, 1\,A 125\,VAC). Generic 3D-printer part with no formal datasheet ---
+specs read directly from the switch body.
+
+% =============================================================================
+\section*{Components List}
+\rowcolors{2}{rowgray}{white}
+\begin{xltabular}{\textwidth}{@{}N P{3.6cm} Q >{\RaggedRight\arraybackslash\ttfamily\scriptsize}p{2.8cm} L@{}}
+\toprule
+\rowcolor{headblue}\tc{\#} & \tc{Component} & \tc{Qty} & \tc{Datasheet} & \tc{Notes}\\
+\midrule\endhead
+1 & ESP32 DevKit V1 (WROOM-32) & 1
+  & esp32_datasheet_en.pdf & 3.3\,V logic (also esp-dev-kits-en-master-esp32.pdf)\\
+2 & BTS7960 43A H-Bridge module & 1 & BTS7960 Motor Driver.pdf
+  & Motor driver, 3.3--5\,V logic, 6--27\,V motor supply\\
+3 & DC worm gear motor, 12\,V (5882-50ZY) & 1 & vendor spec (model identified)
+  & Brushed, self-locking; stall $\sim$15--19\,A; \textbf{confirm gear-ratio
+    variant} \nd\ needs $\sim$200\,kg$\cdot$cm / 20\,N$\cdot$m for wind\\
+4 & P160 16\,mm rotary potentiometer & 1 & p160.pdf
+  & Use \textbf{linear (B) taper}; 10\,k$\Omega$; 260\textdegree\ travel\\
+5 & DS3231 RTC module & 1 & DS3231.pdf & I2C 0x68, CR2032 backup\\
+6 & REIFENG mechanical endstop (SPDT microswitch on PCB, C/NO/NC,
+    1\,A 125\,VAC, 1\,M cable) & 2 & generic 3D-printer part (no datasheet)
+  & East \& west end-stops; use C + NO contacts\\
+7 & QS-FS wind speed sensor (C2192-002) & 1 & C2192-002_datasheet.pdf
+  & \textbf{Powered 5--24\,V sensor, NOT a reed switch} \nd\ see anemometer
+    section\\
+8 & LDR / photocell (SparkFun SEN-09088) & 2 & SEN-09088.pdf
+  & Diagnostic only; 2-terminal, no polarity\\
+9 & 10\,k$\Omega$ resistor & 2 & \nd\ & LDR voltage divider pull-downs\\
+10 & 10\,k$\Omega$ + 20\,k$\Omega$ resistor & 1 ea & \nd
+  & Anemometer 5\,V$\rightarrow$3.3\,V signal divider (see note)\\
+11 & 12\,V 20\,A power supply (e.g.\ ALITOVE 240\,W) & 1 & \nd
+  & Motor rail; 20\,A covers the $\sim$19\,A stall surge\\
+12 & LM2596 buck converter (12\,V$\rightarrow$5\,V, adj., 3\,A) & 1 & \nd
+  & Makes the 5\,V rail; \textbf{set to 5.0\,V before connecting ESP32}\\
+13 & 12\,AWG wire & \nd\ & \nd
+  & Motor power path only (supply$\leftrightarrow$driver$\leftrightarrow$motor)\\
+14 & 18--22\,AWG wire & \nd\ & \nd\ & All logic/signal/ESP32 wiring\\
+15 & Schottky diode (1N5822 3\,A, or 1N5817) & 1 & \nd
+  & In buck 5\,V output $\rightarrow$ ESP 5V pin (stripe toward ESP); lets USB
+    stay safely pluggable for programming\\
+--- & Renogy 50\,W solar panel (RNG-50D-SS) & 1 & 50D-SS-Datasheet.pdf
+  & The tracked panel (Voc 21.8\,V, Isc 3.1\,A); not wired to the controller\\
+\bottomrule
+\end{xltabular}
+
+\begin{notebox}
+\textbf{Common ground:} ESP32 GND, BTS7960 logic GND, anemometer ground, and the
+12\,V supply GND must all be tied together.
+\end{notebox}
+
+% =============================================================================
+\section*{Power \nd\ two rails}
+A single 12\,V 20\,A supply feeds the motor directly and an LM2596 buck converter
+that produces the 5\,V logic rail.
+
+\begin{tcolorbox}[colback=gray!6, colframe=gray!40, boxrule=0.4pt, arc=2pt,
+  fontupper=\ttfamily\scriptsize]
+\begin{verbatim}
+12V 20A supply
+  |-- B+/B- ------------> BTS7960 --> motor (M+/M-)     [12 AWG, ~19 A]
+  |-- buck --[Schottky]-> 5V rail --+-- ESP32 5V pin
+                                    |-- BTS7960 VCC
+                                    +-- anemometer power
+USB port = programming only (the diode lets you plug it in anytime)
+ESP32 3.3V --> RTC, pot, LDRs, limit switches          [18-22 AWG]
+ALL grounds tied together (12V supply, buck, ESP32, driver, sensors)
+\end{verbatim}
+\end{tcolorbox}
+
+\smallskip
+\rowcolors{2}{rowgray}{white}
+\begin{xltabular}{\textwidth}{@{}P{3.2cm} P{4.4cm} P{2.1cm} L@{}}
+\toprule
+\rowcolor{headblue}\tc{From} & \tc{To} & \tc{Wire} & \tc{Notes}\\
+\midrule\endhead
+12\,V supply (+) & BTS7960 B+ & 12\,AWG & Motor power rail\\
+12\,V supply ($-$) & BTS7960 B$-$ & 12\,AWG & Common GND\\
+12\,V supply (+/$-$) & LM2596 IN+ / IN$-$ & 18--22\,AWG & Buck converter input\\
+Buck OUT+ & \textbf{Schottky diode} $\rightarrow$ ESP32 5V pin, BTS7960 VCC,
+  anemometer power & 18--22\,AWG & 5\,V logic rail; diode lets USB coexist\\
+Buck OUT$-$ & ESP32 GND (common) & 18--22\,AWG & \\
+ESP32 3.3\,V & Potentiometer pin 1 & 22\,AWG & Pot reference voltage\\
+ESP32 3.3\,V & DS3231 VCC & 22\,AWG & RTC power (3.3\,V \nd\ see RTC safety note)\\
+ESP32 GND & All peripheral GNDs & 22\,AWG & Common GND \nd\ must be shared\\
+\bottomrule
+\end{xltabular}
+
+\begin{warnbox}
+\begin{itemize}
+  \item If using an adjustable buck, \textbf{set it to 5.0\,V before wiring it to
+        the ESP32}.
+  \item Do \textbf{not} feed 12\,V into the ESP32 VIN; power it from the regulated
+        5\,V rail.
+\end{itemize}
+\end{warnbox}
+
+\begin{notebox}
+\textbf{Programming:} the ESP32 is powered through its \textbf{5V pin} from the
+buck \nd\ the USB port is for flashing code only. A \textbf{Schottky diode} in the
+buck's 5\,V output means you can leave the whole system powered and plug a USB
+cable into the computer anytime, with any cable, with no conflict and no risk to
+the USB port (the diode blocks any backfeed toward the computer).
+\end{notebox}
+
+% =============================================================================
+\section*{BTS7960 Motor Driver $\rightarrow$ ESP32}
+\rowcolors{2}{rowgray}{white}
+\begin{xltabular}{\textwidth}{@{}P{2.2cm} P{2.4cm} T{3cm} L@{}}
+\toprule
+\rowcolor{headblue}\tc{BTS7960 Pin} & \tc{ESP32 GPIO} & \tc{Config symbol} & \tc{Description}\\
+\midrule\endhead
+RPWM & GPIO 25 & PIN_MOTOR_RPWM & PWM \nd\ drives motor CW (panel tilts west)\\
+LPWM & GPIO 26 & PIN_MOTOR_LPWM & PWM \nd\ drives motor CCW (panel tilts east)\\
+R_EN & GPIO 27 & PIN_MOTOR_REN & Enable right half-bridge (driven HIGH)\\
+L_EN & GPIO 14 & PIN_MOTOR_LEN & Enable left half-bridge (driven HIGH)\\
+VCC & ESP32 5\,V & \nd\ & Logic supply for the module\\
+GND & ESP32 GND & \nd\ & Logic ground\\
+R_IS & \nd\ & \nd\ & Current-sense output, not connected\\
+L_IS & \nd\ & \nd\ & Current-sense output, not connected\\
+\bottomrule
+\end{xltabular}
+
+\begin{notebox}
+\textbf{3.3\,V logic confirmed by datasheet.} The BTS7960 module datasheet states
+\textbf{``Control Input Level: 3.3\textasciitilde5V''} \nd\ the ESP32's 3.3\,V GPIO
+drives RPWM/LPWM/R\_EN/L\_EN directly, no level shifter needed. Motor supply
+(B+/B$-$) range is \textbf{6--27\,VDC}, VCC is +5\,V.
+\end{notebox}
+
+% =============================================================================
+\section*{BTS7960 $\rightarrow$ Motor \& Power Terminals}
+Screw-terminal block labels on the IBT-2 module (verified against
+datasheet/vendor docs).
+
+\smallskip
+\rowcolors{2}{rowgray}{white}
+\begin{xltabular}{\textwidth}{@{}P{2.2cm} P{4.4cm} L@{}}
+\toprule
+\rowcolor{headblue}\tc{Terminal} & \tc{Connection} & \tc{Notes}\\
+\midrule\endhead
+M+ & Motor wire A & Swap A/B if the panel drives the wrong direction\\
+M$-$ & Motor wire B & \\
+B+ & 12\,V supply (+) & Motor power rail, 6--27\,V\\
+B$-$ & 12\,V supply ($-$) & Common ground\\
+\bottomrule
+\end{xltabular}
+
+\begin{notebox}
+\textbf{Power sizing:} the 5882-50ZY draws \textbf{$\sim$15--19\,A at stall}
+(startup inrush or a jam), though normal slow tracking moves draw far less. The
+BTS7960 (43\,A) handles this easily, but the \textbf{12\,V supply/battery needs
+$\ge$15--20\,A surge capability} \nd\ a 10\,A supply may brown out on stall.
+Fuse $\sim$10--15\,A on B+; 18\,AWG wire is near its limit at stall current.
+\end{notebox}
+
+% =============================================================================
+\section*{Potentiometer (Shaft Angle Feedback)}
+\rowcolors{2}{rowgray}{white}
+\begin{xltabular}{\textwidth}{@{}P{3cm} P{3.6cm} L@{}}
+\toprule
+\rowcolor{headblue}\tc{Pot pin} & \tc{Connection} & \tc{Notes}\\
+\midrule\endhead
+Pin 1 (end) & ESP32 3.3\,V & Reference high\\
+Pin 2 (wiper) & ESP32 GPIO 34 & \texttt{PIN_POT} \nd\ ADC1\_CH6\\
+Pin 3 (end) & ESP32 GND & Reference low\\
+\bottomrule
+\end{xltabular}
+
+\begin{notebox}
+Use ADC1 pins only (GPIO 32--39). ADC2 is disabled while WiFi is active.
+Run \texttt{runCalibration()} on first assembly to find \texttt{POT_ADC_MIN} /
+\texttt{POT_ADC_MAX}.
+\end{notebox}
+
+% =============================================================================
+\section*{Limit Switches \nd\ REIFENG mechanical endstop (SPDT, C/NO/NC)}
+One switch at each end of travel. The board has an SPDT microswitch (terminals
+\textbf{C / NO / NC}, rated 1\,A 125\,VAC) on a small PCB with mounting holes and
+a 3-wire cable (red/black/white). Firmware uses \texttt{INPUT_PULLDOWN} +
+\texttt{LIMIT_ACTIVE HIGH}, so the switch must connect the GPIO to \textbf{3.3\,V}
+when pressed \nd\ use the \textbf{C and NO} contacts.
+
+\smallskip
+\rowcolors{2}{rowgray}{white}
+\begin{xltabular}{\textwidth}{@{}P{3cm} P{2.4cm} T{2.8cm} L@{}}
+\toprule
+\rowcolor{headblue}\tc{Switch} & \tc{ESP32 GPIO} & \tc{Config symbol} & \tc{Triggers when\dots}\\
+\midrule\endhead
+CW (west) limit & GPIO 32 & PIN_LIMIT_CW & Panel reaches full west travel\\
+CCW (east) limit & GPIO 33 & PIN_LIMIT_CCW & Panel reaches full east travel\\
+\bottomrule
+\end{xltabular}
+
+\smallskip
+\rowcolors{2}{rowgray}{white}
+\begin{xltabular}{\textwidth}{@{}P{4cm} L@{}}
+\toprule
+\rowcolor{headblue}\tc{Switch contact} & \tc{Connect to}\\
+\midrule\endhead
+C (common) & ESP32 3.3\,V\\
+NO (normally open) & ESP32 GPIO 32 (CW) or 33 (CCW)\\
+NC (normally closed) & not connected\\
+\bottomrule
+\end{xltabular}
+
+\begin{notebox}
+\textbf{Identify the wires} (red/black/white order isn't guaranteed) with a
+multimeter in continuity mode, or with the bring-up tool:
+\begin{enumerate}
+  \item Lever \textbf{released} $\rightarrow$ the two wires that beep are
+        \textbf{C and NC}.
+  \item Lever \textbf{pressed} $\rightarrow$ the two wires that beep are
+        \textbf{C and NO}.
+  \item The wire common to both is \textbf{C} ($\rightarrow$ 3.3\,V); the other
+        from step 2 is \textbf{NO} ($\rightarrow$ GPIO).
+\end{enumerate}
+Not weather-sealed \nd\ mount inside the electronics enclosure for a permanent
+outdoor install. (To wire C+NC instead, change \texttt{LIMIT_ACTIVE} to
+\texttt{LOW} and the pinMode to \texttt{INPUT_PULLUP}.)
+\end{notebox}
+
+% =============================================================================
+\section*{Anemometer (Wind Speed) \nd\ QS-FS, part C2192-002}
+\begin{warnbox}
+\caution\textbf{This is NOT a passive reed switch.} Per
+\texttt{datasheets/C2192-002\_datasheet.pdf}, the QS-FS is a \textbf{powered
+electromagnetic-induction sensor} that needs its own supply and outputs an
+actively-driven signal. This changes the wiring substantially from the earlier
+reed-switch assumption.
+\end{warnbox}
+
+\noindent\textbf{Specs:} Supply 5--24\,VDC $\cdot$ output options
+(variant-dependent): \textbf{Pulse (5\,V)}, 4--20\,mA, 0--5\,V/1--5\,V, or RS485
+$\cdot$ range 0--60\,m/s $\cdot$ starting threshold $\le$ 0.8\,m/s $\cdot$ IP55.
+
+\smallskip
+\noindent\textbf{3-wire connection (Pulse / current / voltage variants):}
+
+\smallskip
+\rowcolors{2}{rowgray}{white}
+\begin{xltabular}{\textwidth}{@{}P{2.2cm} P{4cm} L@{}}
+\toprule
+\rowcolor{headblue}\tc{Function} & \tc{Wire color (2 schemes)} & \tc{Connect to}\\
+\midrule\endhead
+Power & red \textbf{or} brown & ESP32 5\,V (VIN) \nd\ sensor needs 5--24\,V, use 5\,V\\
+Ground & blue \textbf{or} black & ESP32 GND (common)\\
+Signal & yellow \textbf{or} blue & GPIO 35 (\texttt{PIN_ANEMOMETER})
+  \textbf{via level shift \nd\ see below}\\
+\bottomrule
+\end{xltabular}
+
+\begin{warnbox}
+\textbf{Two things to resolve before wiring this:}
+\begin{enumerate}
+  \item \textbf{Confirm which output variant you bought.} The current firmware
+        counts digital pulses (\texttt{RISING}-edge interrupt), so it only works
+        with the \textbf{Pulse (5\,V)} variant. If you have the 4--20\,mA, 0--5\,V,
+        or RS485 version, the firmware and wiring must change (ADC + sense
+        resistor, or a MAX485/UART transceiver). The ``-002'' suffix likely
+        encodes the variant \nd\ verify with the supplier.
+  \item \textbf{5\,V signal must be dropped to 3.3\,V.} The pulse output is
+        \textbf{5\,V}, but GPIO 35's absolute max is $\sim$3.6\,V \nd\ driving it
+        at 5\,V can damage the pin. Use a \textbf{voltage divider} on the signal
+        line: signal $\rightarrow$ \textbf{10\,k$\Omega$} $\rightarrow$ GPIO 35,
+        and GPIO 35 $\rightarrow$ \textbf{20\,k$\Omega$} $\rightarrow$ GND (gives
+        5\,V $\times$ 20/30 $\approx$ 3.3\,V). A logic-level shifter also works.
+  \item \textbf{Recalibrate} \texttt{ANEM_MPH_PER_HZ}. The default \texttt{1.49}
+        was for a SparkFun reed-switch anemometer and is wrong for the QS-FS. Get
+        the pulse-frequency-to-wind-speed relation from the QS-FS manual/supplier
+        and update \texttt{config.h}.
+\end{enumerate}
+\end{warnbox}
+
+% =============================================================================
+\section*{LDR Sensors (Diagnostic)}
+Voltage divider: 3.3\,V $\rightarrow$ LDR $\rightarrow$ ADC pin $\rightarrow$
+10\,k$\Omega$ to GND. Used only to cross-check the astronomical algorithm \nd\ not
+required for tracking.
+
+\smallskip
+\rowcolors{2}{rowgray}{white}
+\begin{xltabular}{\textwidth}{@{}P{2.4cm} P{2.4cm} T{2.8cm} L@{}}
+\toprule
+\rowcolor{headblue}\tc{LDR} & \tc{ESP32 GPIO} & \tc{Config symbol} & \tc{Position}\\
+\midrule\endhead
+East LDR & GPIO 36 & PIN_LDR_EAST & Faces east (morning sun)\\
+West LDR & GPIO 39 & PIN_LDR_WEST & Faces west (afternoon sun)\\
+\bottomrule
+\end{xltabular}
+
+\smallskip
+\rowcolors{2}{rowgray}{white}
+\begin{xltabular}{\textwidth}{@{}P{6cm} L@{}}
+\toprule
+\rowcolor{headblue}\tc{Node} & \tc{Connection}\\
+\midrule\endhead
+LDR top & ESP32 3.3\,V\\
+LDR bottom / ADC junction & ESP32 GPIO 36 or 39\\
+10\,k$\Omega$ resistor (top) & ADC junction\\
+10\,k$\Omega$ resistor (bottom) & ESP32 GND\\
+\bottomrule
+\end{xltabular}
+
+% =============================================================================
+\section*{DS3231 RTC Module (I2C)}
+\rowcolors{2}{rowgray}{white}
+\begin{xltabular}{\textwidth}{@{}P{2.6cm} P{2.4cm} T{2.6cm} L@{}}
+\toprule
+\rowcolor{headblue}\tc{DS3231 pin} & \tc{ESP32 GPIO} & \tc{Config symbol} & \tc{Notes}\\
+\midrule\endhead
+VCC & \textbf{3.3\,V} & \nd\ & Power from 3.3\,V \nd\ see safety note below\\
+GND & GND & \nd\ & \\
+SDA & GPIO 21 & RTC_SDA & I2C data, address 0x68\\
+SCL & GPIO 22 & RTC_SCL & I2C clock\\
+SQW / INT & \nd\ & \nd\ & Not connected\\
+32K & \nd\ & \nd\ & Not connected\\
+\bottomrule
+\end{xltabular}
+
+\begin{warnbox}
+\textbf{Power from 3.3\,V, not 5\,V (safety).} The common ZS-042 DS3231 board has
+an onboard battery-charging circuit (diode + 200\,$\Omega$) intended for a
+rechargeable LIR2032. If you power VCC at 5\,V while using a \textbf{non-rechargeable
+CR2032}, it pushes $\sim$5\,mA into a cell that cannot take a charge \nd\ risk of
+overheating/leakage. Powering from 3.3\,V keeps the diode reverse-biased and
+prevents charging. (If you must run 5\,V, fit a LIR2032 or remove the charging
+resistor.)
+\end{warnbox}
+
+\begin{notebox}
+\begin{itemize}
+  \item The DS3231 chip's I2C address is \textbf{0x68}; the onboard EEPROM is 0x57
+        (or 0x50--0x57). The bring-up I2C scan should report 0x68.
+  \item Install a CR2032 coin cell so the RTC keeps time through power loss.
+  \item The module includes onboard I2C pull-up resistors (typically
+        4.7\,k$\Omega$) \nd\ do not add external pull-ups.
+\end{itemize}
+\end{notebox}
+
+% =============================================================================
+\section*{ESP32 GPIO Summary}
+\rowcolors{2}{rowgray}{white}
+\begin{xltabular}{\textwidth}{@{}C{1.4cm} P{3.4cm} P{3.2cm} L@{}}
+\toprule
+\rowcolor{headblue}\tc{GPIO} & \tc{Function} & \tc{Direction} & \tc{Notes}\\
+\midrule\endhead
+14 & Motor L_EN & Output & BTS7960 left enable\\
+21 & I2C SDA & Bidirectional & DS3231 RTC\\
+22 & I2C SCL & Output & DS3231 RTC\\
+25 & Motor RPWM & Output & PWM CW\\
+26 & Motor LPWM & Output & PWM CCW\\
+27 & Motor R_EN & Output & BTS7960 right enable\\
+32 & Limit CW & Input (pull-down) & West end-stop\\
+33 & Limit CCW & Input (pull-down) & East end-stop\\
+34 & Potentiometer & ADC1 input & Shaft angle feedback\\
+35 & Anemometer & Input-only & QS-FS pulse \nd\ \textbf{5\,V signal, must divide
+  to 3.3\,V} (10\,k/20\,k)\\
+36 & LDR East & ADC1 input & Diagnostic\\
+39 & LDR West & ADC1 input & Diagnostic\\
+\bottomrule
+\end{xltabular}
+
+\end{document}
