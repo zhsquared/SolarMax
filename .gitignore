@@ -24,6 +24,17 @@ coverage.xml
 .DS_Store
 Thumbs.db
 
+# PlatformIO build artifacts (auto-generated)
+.pio/
+
+# LaTeX build artifacts (keep the .tex and .pdf, drop the rest)
+docs/*.aux
+docs/*.log
+docs/*.out
+docs/*.synctex.gz
+docs/*.fls
+docs/*.fdb_latexmk
+
 # Secrets
 .env
 *.pem

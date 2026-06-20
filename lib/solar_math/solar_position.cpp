@@ -3,10 +3,9 @@
 //
 // Assumes a horizontal single-axis tracker with a North-South rotation axis.
 // The panel tilts East (negative angles) in the morning and West (positive)
-// in the afternoon. Angles are clamped to the mechanical range in config.h.
+// in the afternoon. Angles are clamped to the limits defined in solar_position.h.
 
 #include "solar_position.h"
-#include "config.h"
 #include <math.h>
 
 static inline double d2r(double d) { return d * M_PI / 180.0; }

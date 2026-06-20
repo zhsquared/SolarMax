@@ -24,8 +24,9 @@ static float    _simAngle   = 0.0f;
 
 bool timeManagerInit() {
     _simStartMs = millis();
-    Serial.printf("[SIM] Simulation start: 2026-06-21 07:00 UTC — running at %lux speed\n",
-                  SIM_SPEED_FACTOR);
+    Serial.printf("[SIM] Simulation start: %04d-%02d-%02d %02d:%02d UTC — running at %lux speed\n",
+                  SIM_START_YEAR, SIM_START_MONTH, SIM_START_DAY,
+                  SIM_START_HOUR, SIM_START_MIN, SIM_SPEED_FACTOR);
     Serial.println("[SIM] (~12 real minutes covers a full simulated day)");
     return true;
 }
