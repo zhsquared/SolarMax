@@ -1,0 +1,76 @@
+% SolarMax — Parts & Purchase Links (buy-list only)
+% Compile:  pdflatex links_to_parts.tex   (run from docs/)
+% Scope: ONLY where to buy each part. Pinouts/wiring live in wiring.tex / wiring_diagram.tex.
+
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2cm]{geometry}
+\usepackage{lmodern}
+\usepackage[table,svgnames]{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{ragged2e}
+\usepackage{hyperref}
+
+\definecolor{headblue}{HTML}{1F4E79}
+\definecolor{rowgray}{HTML}{EEF3F8}
+\definecolor{linkblue}{HTML}{0B5FB0}
+\definecolor{mutegray}{HTML}{8A8A8A}
+\hypersetup{colorlinks=true, urlcolor=linkblue}
+
+\renewcommand{\arraystretch}{1.35}
+\newcommand{\tc}[1]{\textcolor{white}{\textbf{#1}}}
+\newcolumntype{P}{>{\RaggedRight\arraybackslash}X}
+\newcolumntype{C}[1]{>{\Centering\arraybackslash}p{#1}}
+
+% clickable buy cells
+\newcommand{\amzn}[1]{\href{https://www.amazon.com/dp/#1}{\textbf{Amazon} \footnotesize(#1)}}
+\newcommand{\ada}[1]{\href{https://www.adafruit.com/product/#1}{\textbf{Adafruit} \footnotesize(#1)}}
+\newcommand{\nolink}{\textcolor{mutegray}{\itshape needs link}}
+
+\begin{document}
+\pagestyle{empty}
+
+\begin{center}
+  {\LARGE\bfseries SolarMax --- Parts \& Purchase Links}\\[3pt]
+  {\small Buy-list only. Pinouts and wiring are in \texttt{wiring.pdf} /
+   \texttt{wiring\_diagram.pdf} --- this sheet is just \textbf{where to buy each part}.
+   Click any blue link.}
+\end{center}
+\vspace{8pt}
+
+\rowcolors{2}{rowgray}{white}
+\begin{tabularx}{\textwidth}{@{}C{0.8cm} P C{1.4cm} >{\RaggedRight\arraybackslash}p{5.2cm}@{}}
+\toprule
+\rowcolor{headblue}\tc{\#} & \tc{Part} & \tc{Qty} & \tc{Buy}\\
+\midrule
+1  & ESP32 DevKit V1 (WROOM-32)                    & 1     & \nolink\\
+2  & BTS7960 43A H-Bridge module                   & 1     & \nolink\\
+3  & DC worm gear motor, 12 V (5882-50ZY)          & 1     & \nolink\\
+4  & P160 16 mm rotary potentiometer               & 1     & \nolink\\
+5  & DS3231 RTC module                             & 1     & \amzn{B07Q7NZTQS}\\
+6  & Limit switch --- REIFENG endstop              & 2     & \amzn{B07PCN6T6F}\\
+7  & Anemometer \textcolor{DarkOrange}{$\triangle$} & 1    & \ada{1733}\\
+8  & LDR / photocell                               & 2     & \nolink\\
+9  & 10\,k$\Omega$ resistor                        & 2     & \nolink\\
+10 & 10\,k$\Omega$ + 20\,k$\Omega$ (anem.\ divider) & 1 ea & \nolink\\
+11 & 12 V 20 A power supply                         & 1     & \amzn{B078RTV41D}\\
+12 & Buck converter (12 V$\rightarrow$5 V)          & 1     & \amzn{B0D45KCDCX}\\
+13 & 12 AWG wire                                    & 1     & \amzn{B0D97CJYY7}\\
+14 & 18--22 AWG wire                                & 1     & \nolink\\
+15 & Schottky diode (1N5822)                        & 1     & \amzn{B0CKSGFQ5T}\\
+16 & Lever wire connectors                          & 1     & \amzn{B09CKDWK4Q}\\
+17 & E-stop button (Baomain)                        & 1     & \amzn{B00NTT91Y0}\\
+18 & Main switch (battery disconnect)               & 1     & \amzn{B0CXWTKDJB}\\
+\rowcolor{white}
+--- & Renogy 50 W solar panel (RNG-50D-SS)         & 1     & \nolink\\
+\bottomrule
+\end{tabularx}
+
+\vspace{10pt}
+\noindent\textcolor{DarkOrange}{$\triangle$}~\small\textbf{Anemometer:} the Adafruit 1733 is an
+\textbf{analog (0.4--2.0 V)} sensor, but the firmware currently counts \textbf{pulses}. Pick the
+matching variant or update \texttt{config.h} before ordering.
+
+\end{document}
