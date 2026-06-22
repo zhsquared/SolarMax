@@ -3,17 +3,13 @@
 #include "sensors.h"
 #include "config.h"
 
-static volatile uint32_t _pulses     = 0;
-static uint32_t          _lastCheckMs = 0;
-static float             _windMPH    = 0.0f;
-
-static void IRAM_ATTR anemometerISR() {
-    _pulses++;
-}
+static uint32_t _lastCheckMs = 0;
+static float    _windMPH     = 0.0f;
 
 void sensorsInit() {
-    pinMode(PIN_ANEMOMETER, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(PIN_ANEMOMETER), anemometerISR, RISING);
+    // Anemometer (Adafruit 1733): plain analog input on GPIO35. The pin is
+    // input-only, so there is nothing to drive — readWindSpeedMPH() samples it.
+    pinMode(PIN_ANEMOMETER, INPUT);
 
     pinMode(PIN_LDR_EAST, INPUT);
     pinMode(PIN_LDR_WEST, INPUT);
@@ -23,13 +19,20 @@ float readWindSpeedMPH() {
     uint32_t now     = millis();
     uint32_t elapsed = now - _lastCheckMs;
     if (elapsed < ANEM_SAMPLE_MS) return _windMPH;
+    _lastCheckMs = now;
 
-    uint32_t count = _pulses;
-    _pulses        = 0;
-    _lastCheckMs   = now;
+    // Average several calibrated ADC reads (mV) to smooth noise.
+    uint32_t mvSum = 0;
+    for (int i = 0; i < ANEM_ADC_SAMPLES; i++) {
+        mvSum += analogReadMilliVolts(PIN_ANEMOMETER);
+    }
+    float mv = (float)mvSum / ANEM_ADC_SAMPLES;
 
-    float hz   = (float)count / (elapsed / 1000.0f);
-    _windMPH   = hz * ANEM_MPH_PER_HZ;
+    // Linear map mV -> m/s (0.40 V = 0 m/s, 2.00 V = 32.4 m/s), clamped at 0.
+    float mps = (mv - ANEM_V_OFFSET_MV) * (ANEM_MS_FS / (ANEM_V_FS_MV - ANEM_V_OFFSET_MV));
+    if (mps < 0.0f) mps = 0.0f;
+
+    _windMPH = mps * ANEM_MPH_PER_MS;
     return _windMPH;
 }
 

@@ -40,6 +40,7 @@ inline void pinMode(int, int)               {}
 inline void digitalWrite(int, int)          {}
 inline int  digitalRead(int)                { return LOW; }
 inline int  analogRead(int)                 { return 0; }
+inline uint32_t analogReadMilliVolts(int)   { return 0; }
 inline void analogReadResolution(int)       {}
 inline void attachInterrupt(int, void(*)(), int) {}
 inline int  digitalPinToInterrupt(int p)    { return p; }

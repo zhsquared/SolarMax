@@ -176,42 +176,38 @@ switch must connect the GPIO to **3.3 V** when pressed — use the **C and NO** 
 
 ---
 
-## Anemometer (Wind Speed) — QS-FS, part C2192-002
+## Anemometer (Wind Speed) — Adafruit 1733 (analog 0.4–2.0 V)
 
-> ⚠️ **This is NOT a passive reed switch.** Per `datasheets/C2192-002_datasheet.pdf`, the
-> QS-FS is a **powered electromagnetic-induction sensor** that needs its own supply and
-> outputs an actively-driven signal. This changes the wiring substantially from the earlier
-> reed-switch assumption.
+> ⚠️ **This is an ANALOG sensor, not a pulse/reed sensor.** The Adafruit 1733 is a powered
+> 3-cup anemometer that outputs a **DC voltage proportional to wind speed**. The firmware reads
+> it on an ADC pin (no pulse counting, no divider).
 
-**Specs:** Supply 5–24 VDC · output options (variant-dependent): **Pulse (5 V)**, 4–20 mA, 0–5 V/1–5 V, or RS485 · range 0–60 m/s · starting threshold ≤ 0.8 m/s · IP55.
+**Specs:** Supply **7–24 VDC** · output **0.4 V (0 m/s) → 2.0 V (32.4 m/s)**, linear · 3-wire
+(power / ground / signal).
 
-**3-wire connection (Pulse / current / voltage variants):**
+**3-wire connection:**
 
-| Function | Wire color (2 color schemes) | Connect to |
-|----------|------------------------------|------------|
-| Power | red **or** brown | ESP32 5 V (VIN) — sensor needs 5–24 V, use 5 V |
-| Ground | blue **or** black | ESP32 GND (common) |
-| Signal | yellow **or** blue | GPIO 35 (`PIN_ANEMOMETER`) **via level shift — see below** |
+| Function | Wire color | Connect to |
+|----------|------------|------------|
+| Power | red (or brown) | **12 V rail** — the 1733 needs 7–24 V; **it will NOT run on 5 V** |
+| Ground | black (or blue) | ESP32 GND (common) |
+| Signal | blue (or yellow) | GPIO 35 (`PIN_ANEMOMETER`) **direct — no divider** |
 
-> ⚠️ **Two things to resolve before wiring this:**
+> ✅ **No voltage divider needed.** The 2.0 V max output is already safe for the 3.3 V ADC, so
+> the signal wire goes straight to GPIO 35. (The old 10 kΩ + 20 kΩ divider for the previous
+> 5 V pulse sensor is **no longer used** and has been removed from the parts list.)
 >
-> 1. **Confirm which output variant you bought.** The current firmware counts digital pulses
->    (`RISING`-edge interrupt), so it only works with the **Pulse (5 V)** variant. If you have
->    the 4–20 mA, 0–5 V, or RS485 version, the firmware and wiring must change (ADC + sense
->    resistor, or a MAX485/UART transceiver). The "-002" suffix likely encodes the variant —
->    verify with the supplier.
+> 🔌 **Power it from 12 V, not the 5 V rail.** Tap the same 12 V that feeds the buck input
+> (main-switch output). The signal swings only 0.4–2.0 V regardless of the 12 V supply.
 >
-> 2. **5 V signal must be dropped to 3.3 V.** The pulse output is **5 V**, but GPIO 35's
->    absolute max is ~3.6 V — driving it at 5 V can damage the pin. Use a **voltage divider**
->    on the signal line: signal → **10 kΩ** → GPIO 35, and GPIO 35 → **20 kΩ** → GND
->    (gives 5 V × 20/30 ≈ 3.3 V). A logic-level shifter also works. (No pull-up resistor is
->    needed anymore — the sensor actively drives the line; the old reed-switch pull-up note is
->    obsolete. If bench testing shows the output is open-collector rather than push-pull, add a
->    pull-up to 5 V *before* the divider.)
+> 🧮 **Calibration is in `config.h` already.** `ANEM_V_OFFSET_MV` (400 mV), `ANEM_V_FS_MV`
+> (2000 mV) and `ANEM_MS_FS` (32.4 m/s) implement the linear map; the firmware reads with
+> `analogReadMilliVolts()` and converts to mph. No code changes needed to run — just wire it.
 >
-> 3. **Recalibrate `ANEM_MPH_PER_HZ`.** The default `1.49` was for a SparkFun reed-switch
->    anemometer and is wrong for the QS-FS. Get the pulse-frequency-to-wind-speed relation from
->    the QS-FS manual/supplier and update `config.h`.
+> ⚠️ **One thing to confirm on the bench (already noted in `config.h`):** a healthy 1733 idles
+> near **0.40 V even in dead calm**. If you ever see it pinned near 0 V, it lost 12 V power or
+> the signal wire is open. After confirming the real idle voltage you can optionally enable the
+> fail-safe (treat < ~150 mV as a fault → stow). Not required for normal operation.
 
 ---
 

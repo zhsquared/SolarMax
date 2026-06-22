@@ -59,7 +59,7 @@ bool runSelfCheck() {
         snprintf(buf, sizeof(buf), "%.1f mph", wind);
         report(0, "Wind sensor", buf);
     } else {
-        snprintf(buf, sizeof(buf), "%.1f mph — implausible, check anemometer pull-up", wind);
+        snprintf(buf, sizeof(buf), "%.1f mph — implausible, check anemometer wiring / 12 V power", wind);
         report(1, "Wind sensor", buf);
     }
 

@@ -36,10 +36,24 @@
 #define PIN_LIMIT_CCW    33   // Trips at full east travel
 #define LIMIT_ACTIVE   HIGH   // Change to LOW if using normally-closed switches
 
-// ── Anemometer (3-cup, reed-switch output) ───────────────────────────────────
-#define PIN_ANEMOMETER   35   // Interrupt-capable digital input
-#define ANEM_MPH_PER_HZ  1.49f  // mph per pulse/sec — adjust to your model
-#define ANEM_SAMPLE_MS   3000UL  // Averaging window in ms
+// ── Anemometer (Adafruit 1733 — analog 0.4–2.0 V output) ─────────────────────
+// The 1733 is a powered ANALOG anemometer (see docs/wiring.md):
+//   • Power 7–24 V  -> wire to the 12 V rail. It will NOT run on the 5 V rail.
+//   • Signal 0.4–2.0 V -> GPIO35 ADC directly. NO divider (2.0 V < 3.3 V ADC max).
+// Linear map: 0.40 V = 0 m/s, 2.00 V = 32.4 m/s; output clamps to 0 below 0.40 V.
+// Read with analogReadMilliVolts() so the ESP32's per-chip ADC calibration is used.
+#define PIN_ANEMOMETER     35        // ADC1_CH7, input-only GPIO
+#define ANEM_V_OFFSET_MV   400.0f    // Sensor output (mV) at 0 wind     (0.40 V)
+#define ANEM_V_FS_MV       2000.0f   // Sensor output (mV) at full scale (2.00 V)
+#define ANEM_MS_FS         32.4f     // Wind speed (m/s) at ANEM_V_FS_MV
+#define ANEM_MPH_PER_MS    2.23694f  // m/s -> mph conversion
+#define ANEM_ADC_SAMPLES   16        // ADC reads averaged per measurement
+#define ANEM_SAMPLE_MS     3000UL    // Minimum interval between recomputes (ms)
+// TODO (verify on the bench, then optionally enable): a healthy 1733 idles near
+//   0.40 V even in dead calm, so a reading pinned near 0 mV means it lost 12 V power
+//   or the signal wire is open. Once you confirm the real idle voltage, consider
+//   failing SAFE — treat mv < ~150 mV as a fault and report high wind so the panel
+//   stows. Left out for now so a genuinely calm day isn't misread as a fault.
 
 // ── LDR Sensors (diagnostic only — not used for primary tracking) ─────────────
 #define PIN_LDR_EAST     36   // ADC1_CH0, input-only GPIO

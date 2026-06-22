@@ -8,7 +8,7 @@
 //   1  I2C scan        — confirms DS3231 RTC wiring (expect device at 0x68)
 //   2  Potentiometer   — live ADC + mapped angle (turn the pot, watch it move)
 //   3  Limit switches  — live state of CW/CCW switches (press each to confirm)
-//   4  Anemometer      — pulse count + computed mph over 5 s windows (spin it)
+//   4  Anemometer      — analog mV on GPIO 35 + computed mph (spin/blow on it)
 //   m  reprint this menu
 //
 // Each test runs until you press 'm' or another menu key. These are RAW reads
@@ -23,7 +23,7 @@ static void printMenu() {
     Serial.println(" 1  I2C scan        (DS3231 RTC — expect 0x68)");
     Serial.println(" 2  Potentiometer   (GPIO 34 ADC + angle)");
     Serial.println(" 3  Limit switches  (GPIO 32 CW / GPIO 33 CCW)");
-    Serial.println(" 4  Anemometer      (GPIO 35 pulse count -> mph)");
+    Serial.println(" 4  Anemometer      (GPIO 35 analog mV -> mph)");
     Serial.println(" m  reprint this menu");
     Serial.println("=============================================");
     Serial.print("Select test: ");
@@ -95,29 +95,23 @@ static void testLimits() {
     }
 }
 
-// ── Test 4: Anemometer ────────────────────────────────────────────────────────
-static volatile uint32_t _pulses = 0;
-static void IRAM_ATTR anemISR() { _pulses++; }
-
+// ── Test 4: Anemometer (Adafruit 1733, analog) ───────────────────────────────
 static void testAnemometer() {
-    Serial.println("\n[ANEM] Counting pulses on GPIO 35 over 5 s windows.");
-    Serial.println("       Spin the cups. If it counts with no wind, the external");
-    Serial.println("       pull-up is missing/floating. (press m to stop)");
-    pinMode(PIN_ANEMOMETER, INPUT_PULLUP);   // no-op on GPIO 35 — needs ext. pull-up
-    attachInterrupt(digitalPinToInterrupt(PIN_ANEMOMETER), anemISR, RISING);
+    Serial.println("\n[ANEM] Reading analog voltage on GPIO 35 (Adafruit 1733).");
+    Serial.println("       Powered? It should idle near 400 mV in dead calm.");
+    Serial.println("       Spin/blow on the cups and watch mph rise. (press m to stop)");
+    pinMode(PIN_ANEMOMETER, INPUT);
     while (true) {
-        char c; if (keyPressed(c)) { detachInterrupt(digitalPinToInterrupt(PIN_ANEMOMETER)); return; }
-        _pulses = 0;
+        char c; if (keyPressed(c)) return;
+        uint32_t mvSum = 0;
+        for (int i = 0; i < ANEM_ADC_SAMPLES; i++) mvSum += analogReadMilliVolts(PIN_ANEMOMETER);
+        float mv  = (float)mvSum / ANEM_ADC_SAMPLES;
+        float mps = (mv - ANEM_V_OFFSET_MV) * (ANEM_MS_FS / (ANEM_V_FS_MV - ANEM_V_OFFSET_MV));
+        if (mps < 0.0f) mps = 0.0f;
+        float mph = mps * ANEM_MPH_PER_MS;
+        Serial.printf("  %.0f mV  ->  %.1f m/s  =  %.1f mph\n", mv, mps, mph);
         uint32_t start = millis();
-        while (millis() - start < 5000) {
-            char k; if (keyPressed(k)) { detachInterrupt(digitalPinToInterrupt(PIN_ANEMOMETER)); return; }
-            delay(10);
-        }
-        uint32_t count = _pulses;
-        float hz  = count / 5.0f;
-        float mph = hz * ANEM_MPH_PER_HZ;
-        Serial.printf("  %lu pulses / 5s  =  %.2f Hz  ->  %.1f mph\n",
-                      (unsigned long)count, hz, mph);
+        while (millis() - start < 1000) { char k; if (keyPressed(k)) return; delay(10); }
     }
 }
 
