@@ -78,6 +78,13 @@
 #define PANEL_ANGLE_MIN  -30.0f   // Degrees — east mechanical limit
 #define PANEL_ANGLE_MAX   30.0f   // Degrees — west mechanical limit
 #define PANEL_STOW_ANGLE   0.0f   // Flat/horizontal stow position for high wind
+
+// ── Rotation-Axis Orientation (set per roof) ─────────────────────────────────
+// The tracker's rotation axis as physically installed. Flat & level N-S = 0/0
+// (original behavior). On a sloped roof, set how far the axis tilts above
+// horizontal and the compass direction its raised end faces.
+#define AXIS_TILT_DEG      0.0f   // Degrees above horizontal (0 = flat roof)
+#define AXIS_AZIMUTH_DEG   0.0f   // 0=North, 90=East, 180=South, 270=West
 #define MOTOR_DEADBAND_DEG 1.0f   // Stop motor when within ±1° of target
 #define DRIVE_TIMEOUT_MS  30000UL // Abort move if it takes longer than this (fault)
 
