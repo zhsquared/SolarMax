@@ -1,22 +1,25 @@
 #include <Arduino.h>
 #include "config.h"
 #include "solar_position.h"
+#include "tracker_core.h"
 #include "motor_control.h"
 #include "sensors.h"
 #include "time_manager.h"
 #include "diagnostics.h"
 
-// ── State Machine ─────────────────────────────────────────────────────────────
-enum SystemState {
-    STATE_INIT,      // Power-on: home panel, determine starting state
-    STATE_TRACKING,  // Normal operation: follow the sun every 5 minutes
-    STATE_STOW,      // High wind: hold flat until wind drops
-    STATE_NIGHT,     // Sun below horizon: park east, wait for sunrise
-    STATE_ERROR      // No valid time source — operator intervention needed
-};
+// The decision brain (shared with the interactive simulator).
+static TrackerCore   core;
+static TrackerConfig cfg;
+static uint32_t      lastTrackMs = 0;
 
-static SystemState state       = STATE_INIT;
-static uint32_t    lastTrackMs = 0;
+// Fill the config brain from the compile-time settings in config.h.
+static void loadConfig() {
+    cfg.lat = LATITUDE;            cfg.lon = LONGITUDE;
+    cfg.axisTilt = AXIS_TILT_DEG;  cfg.axisAzimuth = AXIS_AZIMUTH_DEG;
+    cfg.windStowMph = WIND_STOW_MPH; cfg.windResumeMph = WIND_RESUME_MPH;
+    cfg.panelMin = PANEL_ANGLE_MIN;  cfg.panelMax = PANEL_ANGLE_MAX;
+    cfg.stowAngle = PANEL_STOW_ANGLE;
+}
 
 // ── Diagnostic: compare LDR balance to expected sun direction ─────────────────
 static void checkLDRDiagnostic(const SolarAngles& sa) {
@@ -56,9 +59,10 @@ void setup() {
 
     motorInit();
     sensorsInit();
+    loadConfig();
 
     if (!timeManagerInit()) {
-        state = STATE_ERROR;
+        core.state = TS_ERROR;
         return;
     }
 
@@ -66,98 +70,50 @@ void setup() {
     // runCalibration(); while(true);
 
     runSelfCheck();   // Print a peripheral health report before tracking starts
-
-    state = STATE_INIT;
 }
 
 // ── Main Loop ─────────────────────────────────────────────────────────────────
 void loop() {
-    DateTime    utc  = getCurrentTimeUTC();
-    SolarAngles sa   = calculateSolarPosition(utc, LATITUDE, LONGITUDE);
-    float       wind = readWindSpeedMPH();
+    DateTime utc = getCurrentTimeUTC();
 
     // Daily NTP re-sync keeps long-term time accuracy
-    if (isTimeForNTPResync(utc)) {
-        syncNTP();
+    if (isTimeForNTPResync(utc)) syncNTP();
+
+    // Gather inputs and let the shared brain decide the next state + target angle.
+    TrackerInputs in;
+    in.year = utc.year(); in.month = utc.month(); in.day = utc.day();
+    in.hourUTC = utc.hour() + utc.minute() / 60.0 + utc.second() / 3600.0;
+    in.windMph = readWindSpeedMPH();
+    in.timeValid = true;
+
+    TrackerStep s = core.step(cfg, in);
+
+    if (s.state == TS_ERROR) {
+        Serial.println("[ERROR] No valid time source — fix WiFi/RTC and reset.");
+        delay(10000);
+        return;
     }
 
-    switch (state) {
+    if (s.note) Serial.printf("[STATE] %s\n", s.note);
 
-        // ── INIT ──────────────────────────────────────────────────────────────
-        case STATE_INIT:
-            Serial.println("[STATE] INIT — homing panel to east position");
-            driveToAngle(PANEL_ANGLE_MIN);
-            state      = sa.aboveHorizon ? STATE_TRACKING : STATE_NIGHT;
-            lastTrackMs = 0;  // Force immediate tracking update on entry
-            Serial.printf("[STATE] → %s\n", sa.aboveHorizon ? "TRACKING" : "NIGHT");
-            break;
+    // Drive to the commanded angle. The motor deadband means this only physically
+    // moves when the error exceeds MOTOR_DEADBAND_DEG, which naturally throttles
+    // sun-following to a move every few minutes.
+    driveToAngle(s.targetAngle);
 
-        // ── TRACKING ──────────────────────────────────────────────────────────
-        case STATE_TRACKING:
-            if (wind >= WIND_STOW_MPH) {
-                Serial.printf("[WIND]  %.1f mph — above stow threshold (%.0f mph)\n",
-                              wind, WIND_STOW_MPH);
-                Serial.println("[STATE] TRACKING → STOW");
-                driveToAngle(PANEL_STOW_ANGLE);
-                state = STATE_STOW;
-                break;
-            }
-
-            if (!sa.aboveHorizon) {
-                Serial.println("[STATE] TRACKING → NIGHT (sun set)");
-                driveToAngle(PANEL_ANGLE_MIN);  // Park east for tomorrow
-                state = STATE_NIGHT;
-                break;
-            }
-
-            if (millis() - lastTrackMs >= TRACKING_INTERVAL_MS) {
-                printSolarState(sa, utc);
-                driveToAngle(sa.panelAngle);
-                checkLDRDiagnostic(sa);
-                lastTrackMs = millis();
-            }
-            break;
-
-        // ── STOW ──────────────────────────────────────────────────────────────
-        case STATE_STOW:
-            if (wind < WIND_RESUME_MPH) {
-                Serial.printf("[WIND]  %.1f mph — below resume threshold (%.0f mph)\n",
-                              wind, WIND_RESUME_MPH);
-                if (sa.aboveHorizon) {
-                    Serial.println("[STATE] STOW → TRACKING");
-                    state       = STATE_TRACKING;
-                    lastTrackMs = 0;
-                } else {
-                    Serial.println("[STATE] STOW → NIGHT");
-                    driveToAngle(PANEL_ANGLE_MIN);
-                    state = STATE_NIGHT;
-                }
-            }
-            break;
-
-        // ── NIGHT ─────────────────────────────────────────────────────────────
-        case STATE_NIGHT: {
-            static uint32_t lastNightPrintMs = 0;
-            if (millis() - lastNightPrintMs >= 10000) {
-                int localHour = (utc.hour() + 24 + TIMEZONE_OFFSET) % 24;
-                Serial.printf("[NIGHT] Waiting for sunrise... sim time %02d:%02d local\n",
-                              localHour, utc.minute());
-                lastNightPrintMs = millis();
-            }
-            if (sa.aboveHorizon) {
-                Serial.println("[STATE] NIGHT → TRACKING (sunrise)");
-                state       = STATE_TRACKING;
-                lastTrackMs = 0;
-            }
-            break;
+    // Periodic human-readable telemetry.
+    if (s.state == TS_TRACKING && (s.note || millis() - lastTrackMs >= TRACKING_INTERVAL_MS)) {
+        printSolarState(s.sun, utc);
+        checkLDRDiagnostic(s.sun);
+        lastTrackMs = millis();
+    } else if (s.state == TS_NIGHT) {
+        static uint32_t lastNightPrintMs = 0;
+        if (s.note || millis() - lastNightPrintMs >= 10000) {
+            int localHour = (utc.hour() + 24 + TIMEZONE_OFFSET) % 24;
+            Serial.printf("[NIGHT] Waiting for sunrise... %02d:%02d local\n",
+                          localHour, utc.minute());
+            lastNightPrintMs = millis();
         }
-
-        // ── ERROR ─────────────────────────────────────────────────────────────
-        case STATE_ERROR:
-            Serial.println("[ERROR] No valid time source — system halted.");
-            Serial.println("[ERROR] Fix WiFi credentials or connect DS3231 RTC, then reset.");
-            delay(10000);
-            break;
     }
 
     delay(1000);  // 1-second main loop tick
