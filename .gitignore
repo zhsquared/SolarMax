@@ -27,6 +27,9 @@ Thumbs.db
 # PlatformIO build artifacts (auto-generated)
 .pio/
 
+# CMake / FTXUI simulator build output
+sim/build/
+
 # LaTeX build artifacts (keep the .tex and .pdf, drop the rest)
 docs/*.aux
 docs/*.log
