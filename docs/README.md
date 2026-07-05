@@ -11,6 +11,7 @@ panel to match — with automatic high-wind stow and night park.
 | [data_flow.md](data_flow.md) | How data moves each control cycle (time → sun → decision → motor) |
 | [sun_tracking_math.md](sun_tracking_math.md) | **Where the formulas are** and how they work (NOAA + tilted-axis) |
 | [usage.md](usage.md) | Build, flash, simulate, test, and configure the repo |
+| [flashing_guide.pdf](flashing_guide.pdf) | **Illustrated step-by-step:** install VS Code + PlatformIO and flash the ESP32 (for new teammates) |
 | [simulation.md](simulation.md) | The two simulators and how the fake hardware works |
 
 ## Hardware docs (already in this folder)

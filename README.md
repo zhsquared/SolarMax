@@ -4,10 +4,13 @@ ESP32 firmware for a single-axis solar tracker. It points the panel by **computi
 the sun's position from date, time, and location** (NOAA Solar Calculator) instead
 of using light sensors — with automatic high-wind stow and night park.
 
+> **New teammate?** Start with the illustrated **[Flashing the ESP32 guide](docs/flashing_guide.pdf)**
+> (install VS Code + PlatformIO and flash the board), then use the build commands below.
+
 ## 📖 Documentation
 Full docs are in **[docs/](docs/README.md)**:
 - [Architecture](docs/architecture.md) · [Data flow](docs/data_flow.md) · [Sun-tracking math](docs/sun_tracking_math.md)
-- [Usage / build guide](docs/usage.md) · [Simulation](docs/simulation.md)
+- [Usage / build guide](docs/usage.md) · [Simulation](docs/simulation.md) · [Flashing the ESP32 (PDF)](docs/flashing_guide.pdf)
 - [Wiring](docs/wiring.md) · [Bill of materials](docs/links_to_parts.md)
 
 ## Hardware

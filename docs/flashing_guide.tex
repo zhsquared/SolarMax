@@ -1,0 +1,211 @@
+% SolarMax — Flashing the ESP32 (VS Code + PlatformIO)
+% Compile:  pdflatex flashing_guide.tex   (run twice for the table of contents)
+% Real screenshots use \realshot{...}; missing (hardware) shots stay as \shot{...} placeholders.
+
+\documentclass[11pt]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage[most]{tcolorbox}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage[colorlinks=true,linkcolor=blue!60!black,urlcolor=blue!60!black]{hyperref}
+
+\graphicspath{{./}}
+
+% ── Repo location ─────────────────────────────────────────────────────────────
+\newcommand{\repourl}{\href{https://github.com/zhsquared/SolarMax}{github.com/zhsquared/SolarMax}}
+
+% ── Colors / section styling ─────────────────────────────────────────────────
+\definecolor{brandblue}{HTML}{1565C0}
+\definecolor{brandgreen}{HTML}{2E7D32}
+\titleformat{\section}{\Large\bfseries\color{brandblue}}{\thesection.}{0.5em}{}
+
+% ── Callout boxes ─────────────────────────────────────────────────────────────
+\newtcolorbox{tip}{colback=green!6,colframe=brandgreen,boxrule=0.8pt,
+  left=8pt,right=8pt,top=6pt,bottom=6pt,title=\textbf{Tip},fonttitle=\color{white}}
+\newtcolorbox{warn}{colback=red!5,colframe=red!70!black,boxrule=0.8pt,
+  left=8pt,right=8pt,top=6pt,bottom=6pt,title=\textbf{Important},fonttitle=\color{white}}
+\newtcolorbox{note}{colback=blue!5,colframe=brandblue,boxrule=0.8pt,
+  left=8pt,right=8pt,top=6pt,bottom=6pt,title=\textbf{Note},fonttitle=\color{white}}
+
+% ── A real screenshot: #1 = image file, #2 = caption ─────────────────────────
+\newcommand{\realshot}[2]{%
+\begin{center}
+\fbox{\includegraphics[width=0.86\linewidth]{#1}}\\[3pt]
+{\small\itshape #2}
+\end{center}}
+
+% ── A still-needed screenshot: #1 = intended filename, #2 = what to capture ──
+\newcommand{\shot}[2]{%
+\begin{center}
+\setlength{\fboxsep}{10pt}%
+\fcolorbox{gray}{gray!8}{\parbox[c][2.8cm][c]{0.86\linewidth}{\centering
+\textcolor{gray!55!black}{\small\ttfamily [\,IMAGE PLACEHOLDER:\ #1\,]}\\[6pt]
+\textbf{Screenshot to take:}\ #2}}
+\end{center}}
+
+\setlist[enumerate]{leftmargin=1.6em,itemsep=3pt,topsep=4pt}
+
+\begin{document}
+
+% ── Title ─────────────────────────────────────────────────────────────────────
+\begin{center}
+{\Huge\bfseries\color{brandblue} SolarMax}\\[4pt]
+{\LARGE Flashing the ESP32 --- Step-by-Step Guide}\\[8pt]
+{\large VS Code + PlatformIO. A beginner-friendly walkthrough --- no prior setup needed.}\\[6pt]
+\rule{0.9\linewidth}{0.8pt}
+\end{center}
+
+\vspace{4pt}
+\tableofcontents
+\vspace{8pt}
+
+% ── Before you start ──────────────────────────────────────────────────────────
+\section{Before you start}
+
+You need these on hand:
+\begin{itemize}[leftmargin=1.6em]
+  \item A computer (Windows or macOS) with internet.
+  \item The ESP32 DevKit V1 board.
+  \item A \textbf{USB data cable} (Micro-USB) that fits the board.
+\end{itemize}
+
+\begin{warn}
+Many USB cables are \textbf{charge-only} and carry no data --- the board will power on
+but the computer won't see it. If your board is not detected later, the cable is the
+\#1 suspect. Use a known data cable (e.g.\ one that syncs a phone).
+\end{warn}
+
+\shot{board-overview.jpg}{A clear photo of the ESP32 board, with the USB port, the
+\texttt{EN} (reset) button, and the \texttt{BOOT} button visible.}
+
+% =============================================================================
+\section{Install Visual Studio Code}
+\begin{enumerate}
+  \item Go to \href{https://code.visualstudio.com}{code.visualstudio.com}.
+  \item Click the big download button for your system (Windows or Mac).
+  \item Open the downloaded file and follow the installer (accept the defaults).
+  \item Launch VS Code.
+\end{enumerate}
+\realshot{vscode-01-download.png}{The Visual Studio Code download page. Click the large
+``Download for macOS'' button (or the \textbf{Download} button at the top-right for your
+operating system).}
+
+% =============================================================================
+\section{Install the PlatformIO extension}
+\begin{enumerate}
+  \item In VS Code, click the \textbf{Extensions} icon in the left bar (four squares).
+  \item In the search box, type \texttt{PlatformIO IDE}.
+  \item Click \textbf{Install} on the ``PlatformIO IDE'' result.
+  \item Wait for it to finish --- this can take a few minutes. When prompted, allow it
+        to reload/restart VS Code.
+\end{enumerate}
+\realshot{vscode-02-platformio-extension.png}{The PlatformIO IDE extension page. Click
+\textbf{Install}. (Here it is already installed, so it shows Disable/Uninstall instead.)}
+
+\begin{tip}
+When PlatformIO finishes installing, a small \textbf{alien-head icon} appears in the
+left bar. Clicking it opens \textbf{PlatformIO Home} --- that's how you know the install
+worked.
+\end{tip}
+\realshot{vscode-03-pio-home.png}{PlatformIO Home. The alien-head icon in the far-left
+bar (highlighted near the bottom) opens it. From here you can ``Pick a folder'' to open a
+project.}
+
+% =============================================================================
+\section{Get the SolarMax project onto the computer}
+Pick \emph{one} option:
+\begin{itemize}[leftmargin=1.6em]
+  \item \textbf{Easiest --- download a copy:} open \repourl{} in a browser, click the
+        green \textbf{Code} button, choose \textbf{Download ZIP}, then unzip it. You'll
+        get a folder named \texttt{SolarMax}.
+  \item \textbf{Or copy it:} get the \texttt{SolarMax} folder from a teammate (USB drive
+        or shared drive).
+\end{itemize}
+\realshot{vscode-04-download-zip.png}{On the GitHub repo page, click the green
+\textbf{Code} button and choose \textbf{Download ZIP} (or copy the HTTPS clone URL shown).}
+
+% =============================================================================
+\section{Open the project in VS Code}
+\begin{enumerate}
+  \item In VS Code: \textbf{File \(\rightarrow\) Open Folder\ldots}
+  \item Select the \texttt{SolarMax} folder (the one that contains
+        \texttt{platformio.ini}) and open it.
+  \item Wait. The first time, PlatformIO downloads the ESP32 tools automatically --- a
+        progress bar shows at the bottom. Let it finish before continuing.
+\end{enumerate}
+\realshot{vscode-05-open-folder.png}{The SolarMax project open in VS Code. The Explorer on
+the left lists \texttt{platformio.ini} plus the \texttt{src}, \texttt{lib},
+\texttt{include}, \texttt{docs}, and \texttt{sim} folders.}
+
+% =============================================================================
+\section{Install the USB driver (only if the board isn't detected)}
+Most computers already have this. If, during upload, no port is found, install the driver
+for your board's USB chip:
+\begin{itemize}[leftmargin=1.6em]
+  \item \textbf{CP210x} (most DevKit V1 boards):
+        \href{https://www.silabs.com/developer-tools/usb-to-uart-bridge-vcp-drivers}{Silicon Labs CP210x VCP driver}.
+  \item \textbf{CH340} (some clones): search ``CH340 driver'' for your OS.
+\end{itemize}
+\realshot{driver-cp210x.png}{The Silicon Labs CP210x driver downloads. Choose the one for
+your operating system (e.g.\ ``CP210x VCP Mac OSX Driver'', or a Windows driver).}
+
+% =============================================================================
+\section{Plug in the ESP32}
+Connect the board to the computer with the USB \emph{data} cable. A power LED on the
+board should light up.
+\shot{board-plugged-in.jpg}{The ESP32 plugged into the computer, with its power LED lit.}
+
+% =============================================================================
+\section{Upload (flash) the firmware}
+\begin{enumerate}
+  \item Look at the \textbf{toolbar along the very bottom} of the VS Code window --- a
+        thin dark bar with small icons (this is the PlatformIO toolbar).
+  \item Click the \textbf{right-arrow icon} (\(\rightarrow\)) --- ``PlatformIO: Upload''.
+        (The checkmark next to it is Build-only; the arrow both builds \emph{and} uploads.)
+  \item The terminal at the bottom compiles the code and flashes the board. Wait for it.
+  \item Success looks like \texttt{[SUCCESS]} and ``Took \ldots seconds'' in green.
+\end{enumerate}
+\realshot{vscode-06-toolbar.png}{The PlatformIO toolbar at the bottom of the window. Left
+to right: home, checkmark (\textbf{Build}), right-arrow (\textbf{Upload}), and further
+right the plug icon (\textbf{Serial Monitor}). ``Default (SolarMax)'' shows the active
+project.}
+\shot{vscode-07-upload-success.png}{The VS Code terminal showing a successful upload
+ending in \texttt{[SUCCESS]}.}
+
+\begin{warn}
+If upload fails with a ``Connecting\ldots'' timeout: hold the board's \textbf{BOOT}
+button while it says ``Connecting'', then release it once it starts writing. Also
+double-check the cable (Section~1) and the driver (Section~6).
+\end{warn}
+
+% =============================================================================
+\section{Watch it run (Serial Monitor)}
+\begin{enumerate}
+  \item In the same bottom toolbar, click the \textbf{plug icon} (``Serial Monitor'').
+  \item You should see the SolarMax start-up banner and the self-check report.
+\end{enumerate}
+\shot{vscode-08-serial-monitor.png}{The VS Code Serial Monitor showing SolarMax boot
+output (the ``SolarMax'' banner and the self-check lines).}
+
+\begin{tip}
+That's it --- the ESP32 is flashed. To flash again after code changes, just click the
+Upload arrow again.
+\end{tip}
+
+% =============================================================================
+\section{Troubleshooting}
+\begin{itemize}[leftmargin=1.6em]
+  \item \textbf{No port / board not detected:} try a different (data) USB cable; install
+        the USB driver (Section~6); try a different USB port.
+  \item \textbf{Stuck on ``Connecting\ldots'':} hold \textbf{BOOT} during the connect
+        step, release when writing starts.
+  \item \textbf{Nothing on Serial Monitor:} make sure the baud rate is \textbf{115200}
+        and the correct port is selected.
+  \item \textbf{Upload works but behaves oddly:} press the board's \textbf{EN} (reset)
+        button once to restart it.
+\end{itemize}
+
+\end{document}
