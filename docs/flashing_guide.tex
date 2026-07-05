@@ -29,6 +29,8 @@
   left=8pt,right=8pt,top=6pt,bottom=6pt,title=\textbf{Important},fonttitle=\color{white}}
 \newtcolorbox{note}{colback=blue!5,colframe=brandblue,boxrule=0.8pt,
   left=8pt,right=8pt,top=6pt,bottom=6pt,title=\textbf{Note},fonttitle=\color{white}}
+\newtcolorbox{windows}{colback=cyan!5,colframe=blue!55!cyan,boxrule=0.8pt,
+  left=8pt,right=8pt,top=6pt,bottom=6pt,title=\textbf{On Windows},fonttitle=\color{white}}
 
 % ── A real screenshot: #1 = image file, #2 = caption ─────────────────────────
 \newcommand{\realshot}[2]{%
@@ -54,7 +56,7 @@
 \begin{center}
 {\Huge\bfseries\color{brandblue} SolarMax}\\[4pt]
 {\LARGE Flashing the ESP32 --- Step-by-Step Guide}\\[8pt]
-{\large VS Code + PlatformIO. A beginner-friendly walkthrough --- no prior setup needed.}\\[6pt]
+{\large VS Code + PlatformIO. Beginner-friendly --- works on \textbf{Windows} and \textbf{Mac}.}\\[6pt]
 \rule{0.9\linewidth}{0.8pt}
 \end{center}
 
@@ -71,6 +73,13 @@ You need these on hand:
   \item The ESP32 DevKit V1 board.
   \item A \textbf{USB data cable} (Micro-USB) that fits the board.
 \end{itemize}
+
+\begin{note}
+This guide works on \textbf{Windows} and \textbf{Mac}. The steps are the same on both; a
+blue \textbf{On Windows} box appears wherever something differs (the installer, the USB
+driver, and the port name). The screenshots are from a Mac, but VS Code looks the same on
+Windows.
+\end{note}
 
 \begin{warn}
 Many USB cables are \textbf{charge-only} and carry no data --- the board will power on
@@ -90,8 +99,12 @@ but the computer won't see it. If your board is not detected later, the cable is
   \item Launch VS Code.
 \end{enumerate}
 \realshot{vscode-01-download.png}{The Visual Studio Code download page. Click the large
-``Download for macOS'' button (or the \textbf{Download} button at the top-right for your
-operating system).}
+download button for your system (or the \textbf{Download} button at the top-right).}
+
+\begin{windows}
+Click \textbf{Download for Windows} --- you'll get a \texttt{.exe} installer. Run it and
+accept the defaults (it's fine to leave ``Add to PATH'' checked).
+\end{windows}
 
 % =============================================================================
 \section{Install the PlatformIO extension}
@@ -152,11 +165,25 @@ for your board's USB chip:
 \realshot{driver-cp210x.png}{The Silicon Labs CP210x driver downloads. Choose the one for
 your operating system (e.g.\ ``CP210x VCP Mac OSX Driver'', or a Windows driver).}
 
+\begin{windows}
+Windows often needs this driver. Download the \textbf{CP210x Universal Windows Driver},
+\textbf{unzip} it, then right-click the file \texttt{silabser.inf} and choose
+\textbf{Install} (or run the included \texttt{CP210xVCPInstaller\_x64.exe}). Then open
+\textbf{Device Manager}: under \textbf{Ports (COM \& LPT)} you should see
+``Silicon Labs CP210x\ldots (COM\emph{x})''.
+\end{windows}
+
 % =============================================================================
 \section{Plug in the ESP32}
 Connect the board to the computer with the USB \emph{data} cable. A power LED on the
 board should light up.
 \shot{board-plugged-in.jpg}{The ESP32 plugged into the computer, with its power LED lit.}
+
+\begin{windows}
+To confirm Windows sees the board, open \textbf{Device Manager} \(\rightarrow\)
+\textbf{Ports (COM \& LPT)} --- you should see a \texttt{COM\emph{x}} entry (e.g.\
+\texttt{COM3}). No entry means the driver isn't installed yet (Section~6).
+\end{windows}
 
 % =============================================================================
 \section{Upload (flash) the firmware}
@@ -206,6 +233,9 @@ Upload arrow again.
         and the correct port is selected.
   \item \textbf{Upload works but behaves oddly:} press the board's \textbf{EN} (reset)
         button once to restart it.
+  \item \textbf{(Windows) Which port is it?} Open \textbf{Device Manager} \(\rightarrow\)
+        \textbf{Ports (COM \& LPT)} to see the board's \texttt{COM} number. If nothing
+        appears there, the USB driver isn't installed (Section~6).
 \end{itemize}
 
 \end{document}
