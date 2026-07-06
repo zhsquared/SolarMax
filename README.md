@@ -9,7 +9,7 @@ of using light sensors — with automatic high-wind stow and night park.
 
 ## 📖 Documentation
 Full docs are in **[docs/](docs/README.md)**:
-- [Architecture](docs/architecture.md) · [Data flow](docs/data_flow.md) · [Sun-tracking math](docs/sun_tracking_math.md)
+- [Architecture](docs/architecture.md) · [Data flow](docs/data_flow.md) · [Sun-tracking math](docs/sun_tracking_math.md) · [Motor control](docs/motor_control.md)
 - [Usage / build guide](docs/usage.md) · [Simulation](docs/simulation.md) · [Flashing the ESP32 (PDF)](docs/flashing_guide.pdf)
 - [Wiring](docs/wiring.md) · [Bill of materials](docs/links_to_parts.md)
 
@@ -25,7 +25,8 @@ Full docs are in **[docs/](docs/README.md)**:
 |---|---|---|
 | `esp32dev` | `pio run -e esp32dev -t upload` | Real firmware |
 | `simulate` | `pio run -e simulate && .pio/build/simulate/program` | Native day simulation (no hardware) |
-| `sim/` (CMake) | `cd sim && cmake -S . -B build && cmake --build build && ./build/solarmax_sim` | Interactive terminal simulator |
+| `sim/` (CMake) | `cd sim && cmake -S . -B build && cmake --build build && ./build/solarmax_sim` | Interactive terminal simulator (side view + 3D wireframe) |
+| `sim3d/` (CMake) | `cd sim3d && cmake -S . -B build && cmake --build build && ./build/solarmax_sim3d` | **3D sky-dome visualizer** (raylib) for demos |
 | `bringup` | `pio run -e bringup -t upload` | Validate each sensor |
 | `native` | `pio test -e native` | Unit tests on your Mac |
 

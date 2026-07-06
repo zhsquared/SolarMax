@@ -10,6 +10,7 @@ panel to match — with automatic high-wind stow and night park.
 | [architecture.md](architecture.md) | The big picture: modules, layers, build targets, the state machine |
 | [data_flow.md](data_flow.md) | How data moves each control cycle (time → sun → decision → motor) |
 | [sun_tracking_math.md](sun_tracking_math.md) | **Where the formulas are** and how they work (NOAA + tilted-axis) |
+| [motor_control.md](motor_control.md) | How the target angle becomes motor movement (pot feedback, PWM, deadband) |
 | [usage.md](usage.md) | Build, flash, simulate, test, and configure the repo |
 | [flashing_guide.pdf](flashing_guide.pdf) | **Illustrated step-by-step:** install VS Code + PlatformIO and flash the ESP32 (for new teammates) |
 | [simulation.md](simulation.md) | The two simulators and how the fake hardware works |
@@ -32,7 +33,8 @@ SolarMax/
 │   ├── tracker_core/  the control "brain": state machine (pure, shared with the sim)
 │   └── arduino_compat/ Arduino/RTClib shims so firmware compiles natively
 ├── include/config.h   ALL settings (pins, location, thresholds, roof angle)
-├── sim/           interactive FTXUI terminal simulator (CMake)
+├── sim/           interactive FTXUI terminal simulator: side view + 3D wireframe (CMake)
+├── sim3d/         3D sky-dome visualizer for demos (raylib, CMake)
 ├── test/          native unit tests (sun math, pin validation)
 ├── docs/          this folder
 └── platformio.ini build environments
