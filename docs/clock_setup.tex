@@ -1,0 +1,216 @@
+% SolarMax — Setting the Clock (one-time RTC setup over Wi-Fi)
+% Compile:  pdflatex clock_setup.tex   (run twice for the table of contents)
+
+\documentclass[11pt]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{xcolor}
+\usepackage[most]{tcolorbox}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{listings}
+\usepackage[colorlinks=true,linkcolor=blue!60!black,urlcolor=blue!60!black]{hyperref}
+
+% ── Colors / section styling ─────────────────────────────────────────────────
+\definecolor{brandblue}{HTML}{1565C0}
+\definecolor{brandgreen}{HTML}{2E7D32}
+\titleformat{\section}{\Large\bfseries\color{brandblue}}{\thesection.}{0.5em}{}
+
+% ── Callout boxes ─────────────────────────────────────────────────────────────
+\newtcolorbox{tip}{colback=green!6,colframe=brandgreen,boxrule=0.8pt,
+  left=8pt,right=8pt,top=6pt,bottom=6pt,title=\textbf{Tip},fonttitle=\color{white}}
+\newtcolorbox{warn}{colback=red!5,colframe=red!70!black,boxrule=0.8pt,
+  left=8pt,right=8pt,top=6pt,bottom=6pt,title=\textbf{Important},fonttitle=\color{white}}
+\newtcolorbox{note}{colback=blue!5,colframe=brandblue,boxrule=0.8pt,
+  left=8pt,right=8pt,top=6pt,bottom=6pt,title=\textbf{Note},fonttitle=\color{white}}
+\newtcolorbox{phone}{colback=cyan!5,colframe=blue!55!cyan,boxrule=0.8pt,
+  left=8pt,right=8pt,top=6pt,bottom=6pt,title=\textbf{Phone hotspot},fonttitle=\color{white}}
+
+% ── Code / command / serial-output blocks ────────────────────────────────────
+\lstdefinestyle{cmd}{basicstyle=\ttfamily\small,backgroundcolor=\color{black!6},
+  frame=single,rulecolor=\color{black!25},framesep=6pt,aboveskip=6pt,belowskip=6pt,
+  xleftmargin=4pt,xrightmargin=4pt,breaklines=true,columns=fullflexible,keepspaces=true}
+\lstset{style=cmd}
+
+\setlist[enumerate]{leftmargin=1.7em,itemsep=3pt,topsep=4pt}
+
+\begin{document}
+
+% ── Title ─────────────────────────────────────────────────────────────────────
+\begin{center}
+{\Huge\bfseries\color{brandblue} SolarMax}\\[4pt]
+{\LARGE Setting the Clock --- One-Time Wi-Fi Time Setup}\\[8pt]
+{\large Do this once, right after flashing. The clock keeps itself afterward.}\\[6pt]
+\rule{0.9\linewidth}{0.8pt}
+\end{center}
+
+\vspace{4pt}
+\tableofcontents
+\vspace{8pt}
+
+% =============================================================================
+\section{Where you are, and what this fixes}
+You have already flashed the ESP32 --- nice work. When you run the \emph{real}
+firmware and open the Serial Monitor, you're seeing this on repeat:
+\begin{lstlisting}
+[ERROR] No valid time source - fix WiFi/RTC and reset.
+\end{lstlisting}
+
+\textbf{This is not a bug.} SolarMax figures out where the sun is from the current
+\textbf{date and time}, so if it doesn't trust its clock it refuses to move the panel
+(it fails safe). The board just doesn't have the time \emph{yet}.
+
+This guide does the one-time fix: connect the board to Wi-Fi \textbf{once}, it grabs
+the time from the internet and writes it into the DS3231 real-time clock (RTC). After
+that the RTC keeps time on its own little battery --- \textbf{no Wi-Fi needed again}.
+
+\begin{note}
+The RTC is already wired on your board. You are not changing any wiring here ---
+only giving the board internet access one time so it can learn the correct time.
+\end{note}
+
+% =============================================================================
+\section{What you need}
+\begin{itemize}[leftmargin=1.6em]
+  \item The flashed ESP32, plugged in by USB (same as when you flashed).
+  \item A \textbf{2.4\,GHz} Wi-Fi network \emph{or} a phone hotspot (see below).
+  \item A coin-cell battery (CR2032) seated in the DS3231 module.
+\end{itemize}
+
+\begin{warn}
+The ESP32 can \textbf{only} join \textbf{2.4\,GHz} Wi-Fi --- it cannot see 5\,GHz
+networks. Most home routers broadcast both; if joining fails, that's the \#1 reason.
+A phone hotspot set to 2.4\,GHz is the easiest guaranteed option.
+\end{warn}
+
+% =============================================================================
+\section{Step 1 --- Put your Wi-Fi details in the config}
+\begin{enumerate}
+  \item In VS Code, open the file \texttt{include/config.h}.
+  \item Go to \textbf{lines 9--10} (the \texttt{WIFI\_SSID} and \texttt{WIFI\_PASS}
+        lines):
+\begin{lstlisting}
+#define WIFI_SSID   "YOUR_SSID"
+#define WIFI_PASS   "YOUR_PASSWORD"
+\end{lstlisting}
+  \item Replace them with your network name and password (keep the quotes):
+\begin{lstlisting}
+#define WIFI_SSID   "MyNetwork24"
+#define WIFI_PASS   "mypassword123"
+\end{lstlisting}
+  \item Save the file (\texttt{Ctrl+S}).
+\end{enumerate}
+
+\begin{warn}
+The network name and password are \textbf{case-sensitive} --- type them exactly.
+Please \textbf{don't commit your real password} to GitHub; change these two lines
+back to placeholders before pushing, or just don't push \texttt{config.h}.
+\end{warn}
+
+% =============================================================================
+\section{Using a phone hotspot (optional, easiest)}
+If you don't have easy 2.4\,GHz Wi-Fi, a phone hotspot works great --- just force it
+to 2.4\,GHz, then use its name/password in Step 1.
+
+\begin{phone}
+\textbf{iPhone:} Settings \(\rightarrow\) Personal Hotspot \(\rightarrow\) turn on
+\textbf{Maximize Compatibility} (this forces 2.4\,GHz). Turn the hotspot \textbf{on}
+and keep that screen open while the board connects.\\[4pt]
+\textbf{Android:} Settings \(\rightarrow\) Hotspot \& tethering \(\rightarrow\) Wi-Fi
+hotspot \(\rightarrow\) set \textbf{AP Band} to \textbf{2.4\,GHz}. Turn it on.
+\end{phone}
+
+\begin{tip}
+Make sure the phone providing the hotspot has \textbf{mobile data} on --- the board
+needs to reach the internet to read the time, not just join the hotspot.
+\end{tip}
+
+% =============================================================================
+\section{Step 2 --- Upload the real firmware}
+You'll re-upload, this time the \textbf{real} firmware environment,
+\texttt{esp32dev}. Two ways --- pick one:
+
+\textbf{A. From the PlatformIO sidebar (click-based):}
+\begin{enumerate}
+  \item Click the \textbf{alien-head} icon in the left bar to open PlatformIO.
+  \item Expand \textbf{Project Tasks \(\rightarrow\) esp32dev \(\rightarrow\) General}.
+  \item Click \textbf{Upload}. Wait for \texttt{[SUCCESS]} in the terminal.
+\end{enumerate}
+
+\textbf{B. From the PlatformIO terminal (one command):}
+\begin{enumerate}
+  \item Open the PlatformIO CLI terminal (the terminal where the \texttt{pio}
+        command works).
+  \item Run:
+\begin{lstlisting}
+pio run -e esp32dev -t upload
+\end{lstlisting}
+\end{enumerate}
+
+\begin{note}
+This is the \emph{real} firmware (\texttt{esp32dev}), not the on-board simulation
+(\texttt{simulate\_hw}) you may have run before. Make sure you pick \texttt{esp32dev}.
+\end{note}
+
+% =============================================================================
+\section{Step 3 --- Watch it get the time (Serial Monitor)}
+Open the Serial Monitor (the \textbf{plug} icon in the PlatformIO bottom toolbar, or
+run \texttt{pio device monitor}). Right after the board resets you should see it
+find the RTC, join Wi-Fi, and set the clock:
+\begin{lstlisting}
+[RTC] DS3231 found
+[NTP] Connecting to WiFi... - connected
+[NTP] Syncing time... - OK
+[RTC] Updated from NTP
+\end{lstlisting}
+
+That \texttt{[RTC] Updated from NTP} line is the whole goal: the correct time is now
+stored in the RTC. The \texttt{No valid time source} error is gone, and the tracker
+starts running.
+
+\begin{tip}
+It tries Wi-Fi for about 10 seconds. If it can't connect it says
+\texttt{FAILED (timeout)} --- that's the moment to double-check 2.4\,GHz, the
+name/password, and that the hotspot is on (see Troubleshooting).
+\end{tip}
+
+% =============================================================================
+\section{Step 4 --- Done. The clock is set for good}
+Once you've seen \texttt{[RTC] Updated from NTP}, you're finished:
+\begin{itemize}[leftmargin=1.6em]
+  \item You can \textbf{turn off the hotspot / Wi-Fi}. On every future power-up the
+        board reads the time from the RTC and prints:
+\begin{lstlisting}
+[RTC] Time valid from battery backup
+\end{lstlisting}
+        \ldots then tracks normally, \textbf{no Wi-Fi required}.
+  \item \textbf{Re-flashing does not erase the clock.} The RTC is a separate chip
+        with its own battery, so uploading new code later keeps the correct time.
+\end{itemize}
+
+\begin{tip}
+You may leave your real Wi-Fi details in \texttt{config.h} if you like --- the
+firmware does a small daily re-sync when Wi-Fi is reachable to stay perfectly
+accurate, and simply falls back to the RTC when it isn't. It's optional; the DS3231
+is accurate to about a minute per year on its own.
+\end{tip}
+
+% =============================================================================
+\section{Troubleshooting}
+\begin{itemize}[leftmargin=1.6em]
+  \item \textbf{Still ``No valid time source'' / Wi-Fi \texttt{FAILED (timeout)}:}
+        the board couldn't join the network. Check that it's \textbf{2.4\,GHz} (not
+        5\,GHz), the SSID/password are exact (case-sensitive), and the hotspot is on
+        with mobile data.
+  \item \textbf{Wi-Fi connects but \texttt{Syncing time... FAILED}:} it joined but
+        couldn't reach the internet clock. Use a hotspot that has working mobile data,
+        or a network that isn't blocking outbound time (NTP) traffic.
+  \item \textbf{It worked, but after unplugging it's back to ``not valid'':} the RTC's
+        coin battery is dead or missing --- it can't remember the time without it.
+        Fit a fresh \textbf{CR2032} and set it once more.
+  \item \textbf{\texttt{[RTC] DS3231 not detected}:} the clock module isn't answering
+        on I\textsuperscript{2}C. Check its wiring (\texttt{SDA\,=\,GPIO21},
+        \texttt{SCL\,=\,GPIO22}, \texttt{3V3}, \texttt{GND}); the \texttt{bringup}
+        build's I\textsuperscript{2}C scan should list a device at \texttt{0x68}.
+\end{itemize}
+
+\end{document}
