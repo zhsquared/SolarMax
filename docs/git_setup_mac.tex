@@ -1,0 +1,184 @@
+% SolarMax — Install Git (Homebrew) and use it inside VS Code (macOS)
+% Compile:  pdflatex git_setup_mac.tex   (run twice for the table of contents)
+
+\documentclass[11pt]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{xcolor}
+\usepackage[most]{tcolorbox}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{listings}
+\usepackage[colorlinks=true,linkcolor=blue!60!black,urlcolor=blue!60!black]{hyperref}
+
+% ── Colors / section styling ─────────────────────────────────────────────────
+\definecolor{brandblue}{HTML}{1565C0}
+\definecolor{brandgreen}{HTML}{2E7D32}
+\titleformat{\section}{\Large\bfseries\color{brandblue}}{\thesection.}{0.5em}{}
+
+% ── Callout boxes ─────────────────────────────────────────────────────────────
+\newtcolorbox{tip}{colback=green!6,colframe=brandgreen,boxrule=0.8pt,
+  left=8pt,right=8pt,top=6pt,bottom=6pt,title=\textbf{Tip},fonttitle=\color{white}}
+\newtcolorbox{warn}{colback=red!5,colframe=red!70!black,boxrule=0.8pt,
+  left=8pt,right=8pt,top=6pt,bottom=6pt,title=\textbf{Important},fonttitle=\color{white}}
+\newtcolorbox{note}{colback=blue!5,colframe=brandblue,boxrule=0.8pt,
+  left=8pt,right=8pt,top=6pt,bottom=6pt,title=\textbf{Note},fonttitle=\color{white}}
+
+% ── Terminal command blocks ──────────────────────────────────────────────────
+\lstdefinestyle{cmd}{basicstyle=\ttfamily\small,backgroundcolor=\color{black!6},
+  frame=single,rulecolor=\color{black!25},framesep=6pt,aboveskip=6pt,belowskip=6pt,
+  xleftmargin=4pt,xrightmargin=4pt,breaklines=true,columns=fullflexible,keepspaces=true}
+\lstset{style=cmd}
+
+\setlist[enumerate]{leftmargin=1.7em,itemsep=3pt,topsep=4pt}
+
+\begin{document}
+
+% ── Title ─────────────────────────────────────────────────────────────────────
+\begin{center}
+{\Huge\bfseries\color{brandblue} SolarMax}\\[4pt]
+{\LARGE Install Git \& Get the Code in VS Code --- macOS}\\[8pt]
+{\large Install Homebrew \(\rightarrow\) install Git \(\rightarrow\) clone the project, all from VS Code.}\\[6pt]
+\rule{0.9\linewidth}{0.8pt}
+\end{center}
+
+\vspace{4pt}
+\tableofcontents
+\vspace{8pt}
+
+% =============================================================================
+\section{What this does}
+This installs \textbf{Git} on your Mac using \textbf{Homebrew} (a package installer),
+adds a Git extension to \textbf{VS Code} so it's easy to see, and clones the SolarMax
+project straight from inside VS Code. After this you get the latest code with one
+click any time --- no re-downloading ZIPs.
+
+\begin{note}
+You already have VS Code + PlatformIO from the Flashing guide. We'll do everything
+here \textbf{inside VS Code}, including the Terminal commands.
+\end{note}
+
+% =============================================================================
+\section{What you need}
+\begin{itemize}[leftmargin=1.6em]
+  \item A Mac with internet, and VS Code installed.
+  \item Your Mac \textbf{login password} (the installers ask for it).
+\end{itemize}
+
+% =============================================================================
+\section{Step 1 --- Install Homebrew (in VS Code's terminal)}
+\begin{enumerate}
+  \item Open VS Code. In the top menu: \textbf{Terminal \(\rightarrow\) New Terminal}
+        (a command panel opens at the bottom).
+  \item Go to \href{https://brew.sh}{brew.sh} and copy its install command --- or just
+        paste this one (it's the same) and press \texttt{Return}:
+\begin{lstlisting}
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+\end{lstlisting}
+  \item Type your \textbf{Mac password} when asked (the characters stay hidden --- that's
+        normal) and press \texttt{Return}. Let it run; it takes a few minutes.
+\end{enumerate}
+
+\begin{note}
+Homebrew may first install Apple's ``Command Line Tools'' automatically --- that's
+expected, just let it finish.
+\end{note}
+
+\begin{warn}
+When it's done, Homebrew prints a \textbf{``Next steps''} section with \textbf{two
+lines} to run (they add Homebrew to your PATH). \textbf{Copy those two lines from your
+terminal and run them.} On Apple-silicon Macs they look like this:
+\begin{lstlisting}
+echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+eval "$(/opt/homebrew/bin/brew shellenv)"
+\end{lstlisting}
+\end{warn}
+
+Confirm Homebrew works:
+\begin{lstlisting}
+brew --version
+\end{lstlisting}
+A version number (e.g.\ \texttt{Homebrew 4.x.x}) means it's ready.
+
+% =============================================================================
+\section{Step 2 --- Install Git with Homebrew}
+In the same terminal:
+\begin{lstlisting}
+brew install git
+\end{lstlisting}
+Then confirm:
+\begin{lstlisting}
+git --version
+\end{lstlisting}
+Any version number (e.g.\ \texttt{git version 2.45.0}) means Git is installed.
+
+\begin{tip}
+Now \textbf{quit and reopen VS Code} once. This lets it detect the newly installed
+Git and turn on its Source Control features.
+\end{tip}
+
+% =============================================================================
+\section{Step 3 --- Add the GitLens extension in VS Code}
+VS Code already has built-in Git support; \textbf{GitLens} makes it more visual (history,
+who changed what, a commit graph) --- nice for beginners.
+\begin{enumerate}
+  \item Click the \textbf{Extensions} icon in the left bar (four squares).
+  \item Search for \texttt{GitLens}.
+  \item Click \textbf{Install} on ``GitLens --- Git supercharged''.
+\end{enumerate}
+
+\begin{note}
+This is optional but recommended. Even without it, the \textbf{Source Control} icon in
+the left bar (the branch symbol) already lets you clone, pull, and commit.
+\end{note}
+
+% =============================================================================
+\section{Step 4 --- Clone SolarMax from inside VS Code}
+No terminal needed for this --- use VS Code's command palette:
+\begin{enumerate}
+  \item Press \texttt{Cmd}\,+\,\texttt{Shift}\,+\,\texttt{P} to open the Command Palette.
+  \item Type \texttt{Git: Clone} and select it.
+  \item Paste the project's address and press \texttt{Return}:
+\begin{lstlisting}
+https://github.com/zhsquared/SolarMax.git
+\end{lstlisting}
+  \item Choose a folder to put it in (your \textbf{Documents} folder is a good choice)
+        and click \textbf{Select as Repository Destination}.
+  \item When VS Code asks \textbf{``Would you like to open the cloned repository?''},
+        click \textbf{Open}.
+\end{enumerate}
+You now have the newest SolarMax code open in VS Code.
+
+\begin{warn}
+If you had an older \textbf{ZIP} copy of the project, use this cloned folder from now
+on, and re-apply your own \texttt{config.h} settings here --- your Wi-Fi (lines 9--10)
+and location (lines 4--5).
+\end{warn}
+
+% =============================================================================
+\section{Step 5 --- Getting updates later (in VS Code)}
+When there's new code, pull it without re-downloading anything:
+\begin{enumerate}
+  \item Click the \textbf{Source Control} icon in the left bar (branch symbol).
+  \item Click the \textbf{``\ldots''} menu at the top of that panel
+        \(\rightarrow\) \textbf{Pull}.
+\end{enumerate}
+(Or click the little \textbf{sync} arrows next to the branch name at the bottom-left of
+the window.) That's it --- you're on the newest version.
+
+% =============================================================================
+\section{Troubleshooting}
+\begin{itemize}[leftmargin=1.6em]
+  \item \textbf{\texttt{brew: command not found}:} the PATH step didn't run. Re-run the
+        two ``Next steps'' lines Homebrew printed (Step~1), then \textbf{reopen the
+        terminal} and try \texttt{brew --version} again.
+  \item \textbf{\texttt{git: command not found} after installing:} quit and reopen VS
+        Code (and the terminal) so it picks up the new install.
+  \item \textbf{Password prompt shows nothing as you type:} that's normal for terminal
+        passwords --- type it and press \texttt{Return}.
+  \item \textbf{\texttt{Git: Clone} isn't in the Command Palette:} Git isn't detected
+        yet --- finish Step~2, then quit and reopen VS Code.
+  \item \textbf{Clone fails partway:} usually a network hiccup --- run \texttt{Git:
+        Clone} again with the same address.
+\end{itemize}
+
+\end{document}

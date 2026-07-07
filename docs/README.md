@@ -12,6 +12,7 @@ panel to match — with automatic high-wind stow and night park.
 | [sun_tracking_math.md](sun_tracking_math.md) | **Where the formulas are** and how they work (NOAA + tilted-axis) |
 | [motor_control.md](motor_control.md) | How the target angle becomes motor movement (pot feedback, PWM, deadband) |
 | [usage.md](usage.md) | Build, flash, simulate, test, and configure the repo |
+| [git_setup_mac.pdf](git_setup_mac.pdf) | **macOS:** install Git and clone the repo so you always have the latest code |
 | [flashing_guide.pdf](flashing_guide.pdf) | **Illustrated step-by-step:** install VS Code + PlatformIO and flash the ESP32 (for new teammates) |
 | [clock_setup.pdf](clock_setup.pdf) | **After flashing:** one-time Wi-Fi/hotspot setup to set the RTC clock (fixes "No valid time source") |
 | [deployment_checklist.pdf](deployment_checklist.pdf) | **Before going outside:** set location & mounting angle (exact `config.h` lines) and verify the limit switches |
