@@ -70,6 +70,30 @@ does nothing for control.
 \end{note}
 
 % =============================================================================
+\section{First --- get the updated code onto the computer}
+The firmware was \textbf{updated} so the panel tracks its position with the motor and
+limit switches instead of the potentiometer --- that's the fix for the repeating
+\texttt{move timed out --- check pot wiring} errors. Get that new code onto your
+computer before flashing:
+
+\begin{itemize}[leftmargin=1.6em]
+  \item \textbf{If you cloned it with Git:} open the PlatformIO terminal and run
+        \texttt{git pull} inside the project folder.
+  \item \textbf{If you downloaded a ZIP} (the flashing-guide way): download the latest
+        ZIP from the repo again and replace your project folder with it.
+\end{itemize}
+
+\begin{warn}
+Keep your own \texttt{config.h} settings --- your Wi-Fi (lines 9--10) and location
+(lines 4--5). If you replaced the whole folder, re-apply those edits before flashing.
+\end{warn}
+
+\begin{note}
+Re-flashing the \emph{old} code won't help --- it still expects the pot. You're on the
+updated code when it prints \texttt{[MOTOR] Homing to east limit\ldots} on boot.
+\end{note}
+
+% =============================================================================
 \section{Check 1 --- Location (config.h lines 4--5)}
 Open \texttt{include/config.h} and set your site's coordinates on
 \textbf{lines 4 and 5}:
