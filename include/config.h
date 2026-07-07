@@ -27,7 +27,8 @@
 #define PIN_POT          34   // ADC1_CH6, input-only GPIO
 #define POT_SAMPLES       8   // Readings averaged per call
 
-// Run runCalibration() to find your values, then update these:
+// NOTE: the potentiometer is no longer used for position control (the motor +
+// limit switches do that now). These are kept only for the optional bringup probe.
 #define POT_ADC_MIN     300   // 12-bit ADC count when panel is at PANEL_ANGLE_MIN (-30°)
 #define POT_ADC_MAX    3800   // 12-bit ADC count when panel is at PANEL_ANGLE_MAX (+30°)
 
@@ -93,3 +94,11 @@
 #define WIND_RESUME_MPH   15.0f   // Resume tracking when wind drops below this
 #define SUN_MIN_ELEV_DEG   5.0f   // Below this elevation = night mode
 #define TRACKING_INTERVAL_MS  300000UL   // Recompute sun position every 5 minutes
+
+// ── Position control (pot-less: timed dead-reckoning + limit-switch homing) ──
+// The panel angle is estimated from motor run-time at a fixed speed, referenced
+// by the two limit switches. The speed is measured automatically at every boot by
+// sweeping limit-to-limit — no manual calibration. (The potentiometer above is no
+// longer used for position; it stays wired but only as a spare/diagnostic.)
+#define MOTOR_PWM_MOVE     140      // Fixed duty (0-255) for positioning moves
+#define HOMING_TIMEOUT_MS  60000UL  // Max time to reach a limit while homing/calibrating

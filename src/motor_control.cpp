@@ -4,39 +4,41 @@
 #include "config.h"
 #include <Arduino.h>
 
-// ── Internal helpers ──────────────────────────────────────────────────────────
+// ── Position tracking WITHOUT a potentiometer ─────────────────────────────────
+// There is no encoder or usable position sensor, so we estimate the panel angle by
+// DEAD RECKONING: the motor runs at a fixed PWM (MOTOR_PWM_MOVE), which gives a
+// repeatable travel speed, so  time * speed = angle moved.
+//
+// Two references keep the estimate honest, both from the LIMIT SWITCHES at the
+// mechanical ends (PANEL_ANGLE_MIN = east, PANEL_ANGLE_MAX = west):
+//   • At boot we home to the east limit, then sweep to the west limit while timing
+//     it — that measures the travel speed (deg/s) automatically, no manual step.
+//   • Any time a limit switch trips during operation, we snap the estimate to that
+//     end's exact angle. The tracker naturally pins east each morning and west each
+//     evening, so accumulated drift is erased twice a day for free.
 
-static int readPotRaw() {
-    long sum = 0;
-    for (int i = 0; i < POT_SAMPLES; i++) {
-        sum += analogRead(PIN_POT);
-        delay(2);
-    }
-    return (int)(sum / POT_SAMPLES);
-}
+static float estimatedAngle = 0.0f;   // software position estimate (degrees)
+static float degPerSec      = 0.0f;   // travel speed measured at MOTOR_PWM_MOVE
+static bool  calibrated     = false;  // true once homing + speed measurement succeed
 
-static float adcToAngle(int adc) {
-    return (float)(adc - POT_ADC_MIN) / (float)(POT_ADC_MAX - POT_ADC_MIN)
-           * (PANEL_ANGLE_MAX - PANEL_ANGLE_MIN) + PANEL_ANGLE_MIN;
-}
+// ── Low-level drive. CW moves toward the WEST/+ limit, CCW toward the EAST/- limit.
+static void driveCW (uint8_t s) { ledcWrite(PWM_CHANNEL_L, 0); ledcWrite(PWM_CHANNEL_R, s); }
+static void driveCCW(uint8_t s) { ledcWrite(PWM_CHANNEL_R, 0); ledcWrite(PWM_CHANNEL_L, s); }
 
-// Proportional speed: faster when far away, slow near target, never below MIN.
-static uint8_t calcSpeed(float absError) {
-    int spd = (int)(absError * 6.0f) + MOTOR_PWM_MIN;
-    return (uint8_t)constrain(spd, MOTOR_PWM_MIN, MOTOR_PWM_MAX);
-}
+static bool limitWest() { return digitalRead(PIN_LIMIT_CW)  == LIMIT_ACTIVE; }  // at +MAX
+static bool limitEast() { return digitalRead(PIN_LIMIT_CCW) == LIMIT_ACTIVE; }  // at -MIN
 
-static void driveCW(uint8_t speed) {
-    ledcWrite(PWM_CHANNEL_L, 0);
-    ledcWrite(PWM_CHANNEL_R, speed);
-}
-
-static void driveCCW(uint8_t speed) {
+void motorStop() {
     ledcWrite(PWM_CHANNEL_R, 0);
-    ledcWrite(PWM_CHANNEL_L, speed);
+    ledcWrite(PWM_CHANNEL_L, 0);
 }
 
-// ── Public API ────────────────────────────────────────────────────────────────
+void motorBrake() {
+    ledcWrite(PWM_CHANNEL_R, 255);
+    ledcWrite(PWM_CHANNEL_L, 255);
+    delay(80);
+    motorStop();
+}
 
 void motorInit() {
     ledcSetup(PWM_CHANNEL_R, PWM_FREQ_HZ, PWM_RESOLUTION);
@@ -51,86 +53,82 @@ void motorInit() {
 
     pinMode(PIN_LIMIT_CW,  INPUT_PULLDOWN);
     pinMode(PIN_LIMIT_CCW, INPUT_PULLDOWN);
-
-    analogReadResolution(12);   // 12-bit ADC = 0–4095
     motorStop();
 }
 
-float readPanelAngle() {
-    return adcToAngle(readPotRaw());
-}
-
-void motorStop() {
-    ledcWrite(PWM_CHANNEL_R, 0);
-    ledcWrite(PWM_CHANNEL_L, 0);
-}
-
-void motorBrake() {
-    ledcWrite(PWM_CHANNEL_R, 255);
-    ledcWrite(PWM_CHANNEL_L, 255);
-    delay(80);
+// Drive one direction at the fixed move speed until that end's limit trips or the
+// timeout elapses. Returns true if the limit was reached.
+static bool runToLimit(bool west, unsigned long timeoutMs) {
+    unsigned long start = millis();
+    west ? driveCW(MOTOR_PWM_MOVE) : driveCCW(MOTOR_PWM_MOVE);
+    while (!(west ? limitWest() : limitEast())) {
+        if (millis() - start > timeoutMs) { motorStop(); return false; }
+        delay(5);
+    }
     motorStop();
+    return true;
 }
+
+void motorHomeAndCalibrate() {
+    Serial.println("[MOTOR] Homing to east limit...");
+    if (!runToLimit(false, HOMING_TIMEOUT_MS)) {
+        Serial.println("[MOTOR] ERROR: never reached east limit — check limit-switch wiring");
+        calibrated = false;
+        return;
+    }
+    estimatedAngle = PANEL_ANGLE_MIN;                 // now parked at the east end
+
+    Serial.println("[MOTOR] Sweeping to west limit to measure travel speed...");
+    unsigned long t0 = millis();
+    if (!runToLimit(true, HOMING_TIMEOUT_MS)) {
+        Serial.println("[MOTOR] ERROR: never reached west limit — check limit-switch wiring");
+        calibrated = false;
+        return;
+    }
+    unsigned long sweepMs = millis() - t0;
+    estimatedAngle = PANEL_ANGLE_MAX;                 // now parked at the west end
+
+    float range = PANEL_ANGLE_MAX - PANEL_ANGLE_MIN;  // total sweep in degrees
+    degPerSec   = (sweepMs > 0) ? range / (sweepMs / 1000.0f) : 0.0f;
+    calibrated  = (degPerSec > 0.0f);
+
+    Serial.printf("[MOTOR] Calibrated: %.0f deg in %.1f s = %.2f deg/s\n",
+                  range, sweepMs / 1000.0f, degPerSec);
+}
+
+// Software estimate of the current panel angle (replaces the old pot reading).
+float readPanelAngle() { return estimatedAngle; }
 
 bool driveToAngle(float targetDeg) {
     targetDeg = constrain(targetDeg, PANEL_ANGLE_MIN, PANEL_ANGLE_MAX);
-    unsigned long startMs = millis();
 
-    while (true) {
-        if (millis() - startMs > DRIVE_TIMEOUT_MS) {
-            motorStop();
-            Serial.println("[MOTOR] ERROR: move timed out — check pot wiring");
-            return false;
-        }
-
-        float current = readPanelAngle();
-        float error   = targetDeg - current;
-
-        if (fabsf(error) <= MOTOR_DEADBAND_DEG) {
-            motorStop();
-            return true;
-        }
-
-        if (error > 0) {
-            // Tilt toward west (CW)
-            if (digitalRead(PIN_LIMIT_CW) == LIMIT_ACTIVE) {
-                motorStop();
-                Serial.println("[MOTOR] CW limit switch tripped");
-                return false;
-            }
-            driveCW(calcSpeed(fabsf(error)));
-        } else {
-            // Tilt toward east (CCW)
-            if (digitalRead(PIN_LIMIT_CCW) == LIMIT_ACTIVE) {
-                motorStop();
-                Serial.println("[MOTOR] CCW limit switch tripped");
-                return false;
-            }
-            driveCCW(calcSpeed(fabsf(error)));
-        }
-        delay(50);
+    if (!calibrated) {
+        Serial.println("[MOTOR] ERROR: not calibrated — check limit switches and reset.");
+        return false;
     }
-}
 
-void runCalibration() {
-    Serial.println("=== POTENTIOMETER CALIBRATION ===");
-    Serial.println("1. Manually move panel to EAST limit (-30 deg).");
-    Serial.println("   Then send any character over Serial...");
-    while (!Serial.available()) delay(100);
-    Serial.read();
-    int minRaw = readPotRaw();
-    Serial.print("   East ADC reading: "); Serial.println(minRaw);
+    float delta = targetDeg - estimatedAngle;
+    if (fabsf(delta) <= MOTOR_DEADBAND_DEG) return true;   // already close enough
 
-    Serial.println("2. Manually move panel to WEST limit (+30 deg).");
-    Serial.println("   Then send any character over Serial...");
-    while (!Serial.available()) delay(100);
-    Serial.read();
-    int maxRaw = readPotRaw();
-    Serial.print("   West ADC reading: "); Serial.println(maxRaw);
+    bool west = (delta > 0.0f);                            // + = west = CW
+    unsigned long runMs = (unsigned long)(fabsf(delta) / degPerSec * 1000.0f);
+    if (runMs > DRIVE_TIMEOUT_MS) runMs = DRIVE_TIMEOUT_MS; // safety cap; big moves finish over 2 ticks
 
-    Serial.println("=== Update POT_ADC_MIN and POT_ADC_MAX in config.h ===");
-    Serial.printf("   #define POT_ADC_MIN  %d\n", minRaw);
-    Serial.printf("   #define POT_ADC_MAX  %d\n", maxRaw);
+    unsigned long start = millis();
+    west ? driveCW(MOTOR_PWM_MOVE) : driveCCW(MOTOR_PWM_MOVE);
+    while (millis() - start < runMs) {
+        // Hit the mechanical end early → snap the estimate to it (drift correction).
+        if (west && limitWest()) { motorStop(); estimatedAngle = PANEL_ANGLE_MAX; return true; }
+        if (!west && limitEast()){ motorStop(); estimatedAngle = PANEL_ANGLE_MIN; return true; }
+        delay(5);
+    }
+    motorStop();
+
+    // Dead-reckoned arrival: advance the estimate by how long we actually drove.
+    float moved = (millis() - start) / 1000.0f * degPerSec;
+    estimatedAngle += west ? moved : -moved;
+    estimatedAngle = constrain(estimatedAngle, PANEL_ANGLE_MIN, PANEL_ANGLE_MAX);
+    return true;
 }
 
 #endif // SIMULATE

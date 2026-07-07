@@ -31,16 +31,16 @@ bool runSelfCheck() {
         report(2, "Time source", buf);
     }
 
-    // 2. Potentiometer — angle should sit inside the mechanical range (plus a
-    //    small margin). Out of range usually means a disconnected wiper.
+    // 2. Panel position estimate — should sit inside the mechanical range after
+    //    homing. Out of range means homing/calibration didn't complete.
     float angle = readPanelAngle();
     if (angle >= PANEL_ANGLE_MIN - 5.0f && angle <= PANEL_ANGLE_MAX + 5.0f) {
         snprintf(buf, sizeof(buf), "%.1f deg (range %.0f..%.0f)",
                  angle, (float)PANEL_ANGLE_MIN, (float)PANEL_ANGLE_MAX);
-        report(0, "Pot angle", buf);
+        report(0, "Panel est", buf);
     } else {
-        snprintf(buf, sizeof(buf), "%.1f deg out of range — check wiper / ADC pin", angle);
-        report(1, "Pot angle", buf);
+        snprintf(buf, sizeof(buf), "%.1f deg out of range — homing failed? check limit switches", angle);
+        report(1, "Panel est", buf);
     }
 
     // 3. Limit switches — both tripped at once is electrically impossible and

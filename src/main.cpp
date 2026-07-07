@@ -58,6 +58,7 @@ void setup() {
     Serial.println("============================");
 
     motorInit();
+    motorHomeAndCalibrate();   // home to the limits + auto-measure travel speed (no pot)
     sensorsInit();
     loadConfig();
 
@@ -65,9 +66,6 @@ void setup() {
         core.state = TS_ERROR;
         return;
     }
-
-    // Uncomment the line below on first hardware assembly to calibrate the pot:
-    // runCalibration(); while(true);
 
     runSelfCheck();   // Print a peripheral health report before tracking starts
 }

@@ -14,6 +14,7 @@ panel to match — with automatic high-wind stow and night park.
 | [usage.md](usage.md) | Build, flash, simulate, test, and configure the repo |
 | [flashing_guide.pdf](flashing_guide.pdf) | **Illustrated step-by-step:** install VS Code + PlatformIO and flash the ESP32 (for new teammates) |
 | [clock_setup.pdf](clock_setup.pdf) | **After flashing:** one-time Wi-Fi/hotspot setup to set the RTC clock (fixes "No valid time source") |
+| [deployment_checklist.pdf](deployment_checklist.pdf) | **Before going outside:** set location & mounting angle (exact `config.h` lines) and verify the limit switches |
 | [simulation.md](simulation.md) | The two simulators and how the fake hardware works |
 
 ## Hardware docs (already in this folder)

@@ -67,8 +67,8 @@ bool driveToAngle(float targetDeg) {
 void motorStop()  {}
 void motorBrake() {}
 
-void runCalibration() {
-    Serial.println("[SIM] Calibration not available in simulation mode.");
+void motorHomeAndCalibrate() {
+    Serial.println("[SIM] Motor homed + speed known (simulated — instant).");
 }
 
 // ── Sensors ───────────────────────────────────────────────────────────────────
