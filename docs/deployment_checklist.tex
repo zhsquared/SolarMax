@@ -1,0 +1,194 @@
+% SolarMax — Pre-Deployment Checklist (point it at the sun)
+% Compile:  pdflatex deployment_checklist.tex   (run twice for the table of contents)
+
+\documentclass[11pt]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{xcolor}
+\usepackage[most]{tcolorbox}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{listings}
+\usepackage{amssymb}   % \square for the checklist boxes
+\usepackage[colorlinks=true,linkcolor=blue!60!black,urlcolor=blue!60!black]{hyperref}
+
+% ── Colors / section styling ─────────────────────────────────────────────────
+\definecolor{brandblue}{HTML}{1565C0}
+\definecolor{brandgreen}{HTML}{2E7D32}
+\titleformat{\section}{\Large\bfseries\color{brandblue}}{\thesection.}{0.5em}{}
+
+% ── Callout boxes ─────────────────────────────────────────────────────────────
+\newtcolorbox{tip}{colback=green!6,colframe=brandgreen,boxrule=0.8pt,
+  left=8pt,right=8pt,top=6pt,bottom=6pt,title=\textbf{Tip},fonttitle=\color{white}}
+\newtcolorbox{warn}{colback=red!5,colframe=red!70!black,boxrule=0.8pt,
+  left=8pt,right=8pt,top=6pt,bottom=6pt,title=\textbf{Important},fonttitle=\color{white}}
+\newtcolorbox{note}{colback=blue!5,colframe=brandblue,boxrule=0.8pt,
+  left=8pt,right=8pt,top=6pt,bottom=6pt,title=\textbf{Note},fonttitle=\color{white}}
+
+% ── Code / command / serial-output blocks ────────────────────────────────────
+\lstdefinestyle{cmd}{basicstyle=\ttfamily\small,backgroundcolor=\color{black!6},
+  frame=single,rulecolor=\color{black!25},framesep=6pt,aboveskip=6pt,belowskip=6pt,
+  xleftmargin=4pt,xrightmargin=4pt,breaklines=true,columns=fullflexible,keepspaces=true}
+\lstset{style=cmd}
+
+\setlist[enumerate]{leftmargin=1.7em,itemsep=3pt,topsep=4pt}
+
+\begin{document}
+
+% ── Title ─────────────────────────────────────────────────────────────────────
+\begin{center}
+{\Huge\bfseries\color{brandblue} SolarMax}\\[4pt]
+{\LARGE Pre-Deployment Checklist --- Point It at the Sun}\\[8pt]
+{\large Four numbers to check before the panel goes outside.}\\[6pt]
+\rule{0.9\linewidth}{0.8pt}
+\end{center}
+
+\vspace{4pt}
+\tableofcontents
+\vspace{8pt}
+
+% =============================================================================
+\section{Before you start}
+This assumes you've already \textbf{flashed} the board and \textbf{set the clock}
+(see the Clock Setup guide). This guide covers the last step: making sure the panel
+actually points at the \emph{right} place when you power it up outside.
+
+\begin{note}
+\textbf{How the tracking works:} SolarMax computes where the sun is purely from the
+\textbf{date, time, and location} --- there are no light sensors steering it. So on
+power-up it works out the sun's position and drives the panel there automatically.
+That means it can only be right if the \textbf{location} and the \textbf{mounting
+angle} are correct (both in \texttt{include/config.h}), and the \textbf{limit
+switches} are working.
+\end{note}
+
+\begin{note}
+\textbf{Position is tracked by the motor and limit switches --- no calibration step
+for you.} On power-up the panel homes to the limit switches and measures its own
+travel speed automatically (you'll see a \texttt{[MOTOR] Calibrated:\ \ldots\ deg/s}
+line). The potentiometer is \textbf{not} used for this anymore --- it stays wired but
+does nothing for control.
+\end{note}
+
+% =============================================================================
+\section{Check 1 --- Location (config.h lines 4--5)}
+Open \texttt{include/config.h} and set your site's coordinates on
+\textbf{lines 4 and 5}:
+\begin{lstlisting}
+#define LATITUDE          33.4255f    // Decimal degrees North
+#define LONGITUDE       -111.9400f    // Decimal degrees (negative = West)
+\end{lstlisting}
+The defaults are Tempe, AZ. Change them to wherever the panel will actually sit.
+
+\begin{tip}
+\textbf{Getting your coordinates:} in Google Maps, right-click your exact spot ---
+the latitude and longitude appear at the top of the menu (e.g. \texttt{33.4255,
+-111.9400}); click them to copy. \textbf{North latitude is positive}; \textbf{West
+longitude is negative} (keep the minus sign). Keep the trailing \texttt{f}.
+\end{tip}
+
+% =============================================================================
+\section{Check 2 --- Mounting angle (config.h lines 86--87)}
+These describe how the rotation \emph{axis} is mounted, on \textbf{lines 86 and 87}:
+\begin{lstlisting}
+#define AXIS_TILT_DEG      0.0f   // Degrees above horizontal (0 = flat roof)
+#define AXIS_AZIMUTH_DEG   0.0f   // 0=North, 90=East, 180=South, 270=West
+\end{lstlisting}
+
+\begin{itemize}[leftmargin=1.6em]
+  \item \textbf{Standard install (flat and level, axis running North--South):} leave
+        both at \texttt{0.0f}. This is the common case --- if in doubt, use this.
+  \item \textbf{If the mount is tilted} (sloped roof, or a seasonal tilt): set
+        \texttt{AXIS\_TILT\_DEG} to the pitch angle (degrees above horizontal), and
+        \texttt{AXIS\_AZIMUTH\_DEG} to the compass direction the \emph{raised} end
+        of the axis faces.
+\end{itemize}
+
+\begin{note}
+Getting these wrong tilts the whole day's tracking off. If you're not tilting the
+mount, \texttt{0 / 0} is correct. The full geometry is in
+\texttt{docs/sun\_tracking\_math.md} if you need it.
+\end{note}
+
+% =============================================================================
+\section{Check 3 --- Limit switches (position calibrates itself)}
+There is \textbf{no manual calibration} here. Position is tracked by the motor and
+the two limit switches: on power-up the panel homes to the limits and measures its
+own travel speed automatically. Your only job is to confirm the \textbf{limit
+switches actually work}.
+
+When you power up (Serial Monitor open) you should see, within a minute:
+\begin{lstlisting}
+[MOTOR] Homing to east limit...
+[MOTOR] Sweeping to west limit to measure travel speed...
+[MOTOR] Calibrated: 60 deg in 18.4 s = 3.26 deg/s
+\end{lstlisting}
+Seeing the \texttt{Calibrated} line means both limit switches tripped and the panel
+knows where it is. You're done --- nothing to edit.
+
+\begin{warn}
+If instead you see \texttt{never reached east/west limit --- check limit-switch
+wiring}, a limit switch isn't triggering. The tracker will \textbf{not} move until
+this is fixed --- the limit switches are what tell it where the panel is. Check their
+wiring (and \texttt{LIMIT\_ACTIVE} in \texttt{config.h} if you use normally-closed
+switches).
+\end{warn}
+
+\begin{note}
+The panel does a slow home-and-sweep every time it boots. In the field it never
+powers off, so you'd only ever notice this while (re)programming.
+\end{note}
+
+% =============================================================================
+\section{Finish --- upload and power up outside}
+\begin{enumerate}
+  \item Re-flash the real firmware after your edits:
+\begin{lstlisting}
+pio run -e esp32dev -t upload
+\end{lstlisting}
+  \item Power the panel up \textbf{during daylight}. Within a few seconds it computes
+        the sun's position and drives the panel to face it, then nudges it westward
+        through the day. In the Serial Monitor you'll see lines like:
+\begin{lstlisting}
+[SUN]  Local 10:15  El=42.7 deg  Az=131.6 deg  Panel target=-8.4 deg
+\end{lstlisting}
+\end{enumerate}
+
+\begin{tip}
+\textbf{Plugged in at night?} That's fine --- it parks and prints
+\texttt{[NIGHT] Waiting for sunrise\ldots}, then starts facing the sun automatically
+at sunrise (sun above \texttt{SUN\_MIN\_ELEV\_DEG}, config.h line 94). High wind
+(\(\geq\) \texttt{WIND\_STOW\_MPH}, config.h line 92) sends it flat to stow.
+\end{tip}
+
+% =============================================================================
+\section{Quick checklist}
+\begin{itemize}[leftmargin=2.2em,itemsep=5pt]
+  \item[$\square$] Clock set (Clock Setup guide) --- no \texttt{No valid time source} error.
+  \item[$\square$] \textbf{Latitude} correct --- \texttt{config.h} line 4.
+  \item[$\square$] \textbf{Longitude} correct (minus sign if West) --- \texttt{config.h} line 5.
+  \item[$\square$] \textbf{Axis tilt} matches the mount (\texttt{0} if flat) --- \texttt{config.h} line 86.
+  \item[$\square$] \textbf{Axis azimuth} matches the mount (\texttt{0} if flat) --- \texttt{config.h} line 87.
+  \item[$\square$] \textbf{Limit switches work} --- saw \texttt{[MOTOR] Calibrated:\ \ldots\ deg/s} on boot (Check~3).
+  \item[$\square$] Re-flashed \texttt{esp32dev}, powered up in daylight, panel faces the sun.
+\end{itemize}
+
+% =============================================================================
+\section{Troubleshooting --- ``it moves, but to the wrong place''}
+\begin{itemize}[leftmargin=1.6em]
+  \item \textbf{Doesn't move at all, logs \texttt{never reached\ldots limit} or
+        \texttt{not calibrated}:} a limit switch isn't triggering, so the panel never
+        homed --- check the limit-switch wiring (Check~3).
+  \item \textbf{Panel drifts a few degrees off during the day:} normal for open-loop
+        timing --- it re-zeroes itself at the limit switches each morning and evening.
+  \item \textbf{Tracking is off by a consistent amount all day:} the mounting angle
+        is wrong --- recheck Check~2 (config.h lines 86--87), and that the axis really
+        runs North--South.
+  \item \textbf{Off by hours / points east when it should point west:} location is
+        wrong --- recheck Check~1 (config.h lines 4--5), especially the longitude sign.
+  \item \textbf{Doesn't move at all, logs \texttt{No valid time source}:} the clock
+        isn't set --- see the Clock Setup guide.
+  \item \textbf{Sits flat and won't track:} it's in stow (wind) or night --- check the
+        wind reading and that the sun is actually up.
+\end{itemize}
+
+\end{document}
