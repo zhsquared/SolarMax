@@ -100,5 +100,5 @@
 // by the two limit switches. The speed is measured automatically at every boot by
 // sweeping limit-to-limit — no manual calibration. (The potentiometer above is no
 // longer used for position; it stays wired but only as a spare/diagnostic.)
-#define MOTOR_PWM_MOVE     140      // Fixed duty (0-255) for positioning moves
-#define HOMING_TIMEOUT_MS  60000UL  // Max time to reach a limit while homing/calibrating
+#define MOTOR_PWM_MOVE      35      // Fixed duty (0-255) for positioning moves (25% of 140; lower = slower)
+#define HOMING_TIMEOUT_MS 180000UL  // Max time to reach a limit while homing/calibrating (slow speed needs longer)
