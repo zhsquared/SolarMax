@@ -37,8 +37,8 @@
 % ── Title ─────────────────────────────────────────────────────────────────────
 \begin{center}
 {\Huge\bfseries\color{brandblue} SolarMax}\\[4pt]
-{\LARGE Testing the Solar Panel --- AM33D Multimeter Only}\\[8pt]
-{\large Measure the panel tracking vs.\ not tracking. No resistors, no power supply.}\\[6pt]
+{\LARGE Testing the Solar Panel with the AM33D Multimeter}\\[8pt]
+{\large Comparing panel output with and without tracking, using only the multimeter.}\\[6pt]
 \rule{0.9\linewidth}{0.8pt}
 \end{center}
 
@@ -47,47 +47,46 @@
 \vspace{8pt}
 
 % =============================================================================
-\section{The idea}
-You can evaluate the panel with \textbf{just the AM33D multimeter} by taking two
-readings on the bare panel:
+\section{Overview}
+The panel can be characterized with the AM33D multimeter alone, using two readings on
+the bare panel:
 \begin{itemize}[leftmargin=1.6em]
-  \item \textbf{Voc} --- the open-circuit \textbf{voltage} (nothing connected but the meter).
-  \item \textbf{Isc} --- the short-circuit \textbf{current} (meter straight across the panel).
+  \item \textbf{Voc}: the open-circuit \textbf{voltage} (only the meter connected).
+  \item \textbf{Isc}: the short-circuit \textbf{current} (meter placed across the panel).
 \end{itemize}
 
 \begin{note}
-\textbf{Why this shows the tracker working:} a panel's \textbf{short-circuit current
-(Isc) is proportional to how much sunlight lands on it} --- so it rises when the panel
-faces the sun squarely and falls when it doesn't. Voltage (Voc) barely changes with
-aim. \textbf{So Isc is the number that proves tracking helps.}
+\textbf{Isc and sunlight:} a panel's short-circuit current (Isc) is proportional to the
+amount of sunlight reaching it, so it varies with how squarely the panel faces the sun.
+The open-circuit voltage (Voc) changes only slightly with orientation.
 \end{note}
 
-The panel is a Renogy 50\,W (RNG-50D-SS): in full sun expect \textbf{Voc\,$\approx$\,22\,V}
-and \textbf{Isc up to $\approx$\,3\,A}. Rough power: $P \approx 0.74 \times V_{oc} \times I_{sc}$.
+The panel is a Renogy 50\,W (RNG-50D-SS). Typical full-sun values are
+\textbf{Voc\,$\approx$\,22\,V} and \textbf{Isc up to $\approx$\,3\,A}. Approximate power:
+$P \approx 0.74 \times V_{oc} \times I_{sc}$.
 
 % =============================================================================
-\section{Safety \& setup (read first)}
+\section{Safety and setup}
 \begin{itemize}[leftmargin=1.6em]
-  \item Do this outside in \textbf{steady, strong sun} (clouds change the reading).
-  \item \textbf{The panel does not connect to your power supply} --- it makes its own
-        power from light. Only the panel and the meter are involved.
+  \item Take readings outside in steady, strong sun (clouds change the reading).
+  \item The panel does not connect to the power supply; it generates its own power from
+        light. Only the panel and the meter are involved.
 \end{itemize}
 
 \begin{warn}
-\textbf{Shorting a solar panel is safe} (unlike a battery) --- it can only push its
-\emph{Isc}, about 3\,A. But two AM33D rules matter:
+Shorting a solar panel is safe (unlike a battery): it can only supply its Isc, about
+3\,A. Two AM33D limits apply:
 \begin{itemize}[leftmargin=1.4em,topsep=2pt]
-  \item For current, use the \textbf{10\,A jack + 10\,A dial position}. Do \textbf{not}
-        use the \texttt{V$\Omega$mA} jack for this --- it's fused at 250\,mA and 3\,A
-        would blow that fuse.
+  \item For current, use the \textbf{10\,A jack} with the \textbf{10\,A dial position}.
+        The \texttt{V$\Omega$mA} jack is fused at 250\,mA, and 3\,A would blow that fuse.
   \item The datasheet limits the 10\,A range to \textbf{15 seconds at a time}. Take the
-        Isc reading quickly, then remove the probes.
+        Isc reading, then remove the probes.
 \end{itemize}
 \end{warn}
 
 % =============================================================================
 \section{AM33D quick settings}
-Black lead is always in \textbf{COM}. You'll use exactly two setups:
+The black lead stays in \textbf{COM}. Two meter setups are used:
 
 \begin{center}
 \begin{tabular}{|>{\bfseries}l|l|l|l|}
@@ -100,54 +99,52 @@ Isc (current) & \textbf{10A} in the DC-A block & \texttt{10A} & \texttt{2.85} (a
 
 \begin{note}
 Use the \textbf{DC} side (the ``V'' with a solid line above a dashed line, \(V\!=\)),
-\emph{not} the AC ``V\raisebox{0.2ex}{$\sim$}''. If the voltage shows a leading
-\textbf{``$-$''}, your leads are just reversed --- no harm, the number is still correct.
-\texttt{OL} means over-range (shouldn't happen on these ranges here).
+not the AC ``V\raisebox{0.2ex}{$\sim$}''. A leading \textbf{``$-$''} on the display means
+the leads are reversed; the number is still correct. \texttt{OL} indicates an over-range
+setting.
 \end{note}
 
 % =============================================================================
-\section{Measurement 1 --- Open-circuit voltage (Voc)}
+\section{Measurement 1: Open-circuit voltage (Voc)}
 \begin{enumerate}
   \item Red lead in the \texttt{V$\Omega$mA} jack, black lead in \texttt{COM}.
   \item Turn the dial to \textbf{200} in the \textbf{DC voltage} block.
   \item Touch the red probe to the panel's \textbf{+} wire and black to \textbf{$-$}.
-  \item Read the voltage. In full sun it should be around \textbf{18--22\,V}.
+  \item Read the voltage. In full sun it is typically around \textbf{18 to 22\,V}.
 \end{enumerate}
 
 \begin{tip}
-Press \textbf{HOLD} to freeze a reading so you can write it down. Voc changes only a
-little with aim --- that's expected; the action is in the current (next).
+Press \textbf{HOLD} to freeze a reading for recording. Voc changes only slightly with
+orientation.
 \end{tip}
 
 % =============================================================================
-\section{Measurement 2 --- Short-circuit current (Isc)}
+\section{Measurement 2: Short-circuit current (Isc)}
 \begin{enumerate}
   \item Move the red lead to the \textbf{10\,A} jack (black stays in \texttt{COM}).
   \item Turn the dial to \textbf{10A} in the \textbf{DC current} block.
-  \item Touch the probes across the panel's \textbf{+} and \textbf{$-$} wires --- this
-        briefly shorts the panel \emph{through the meter}, which is fine.
-  \item Read the current \textbf{within a few seconds}, then lift the probes. Full sun,
-        aimed at the sun: up to about \textbf{3\,A}.
+  \item Touch the probes across the panel's \textbf{+} and \textbf{$-$} wires. This
+        briefly shorts the panel through the meter, which is acceptable for a PV panel.
+  \item Read the current within a few seconds, then lift the probes. In full sun with the
+        panel aimed at the sun, values reach about \textbf{3\,A}.
 \end{enumerate}
 
 \begin{warn}
-Keep each Isc reading \textbf{under 15 seconds}. When you're done measuring current,
-\textbf{move the red lead back to the \texttt{V$\Omega$mA} jack} so you don't
-accidentally short something later while the meter is in high-current mode.
+Keep each Isc reading under 15 seconds. After measuring current, move the red lead back
+to the \texttt{V$\Omega$mA} jack, so a later probe touch does not short a circuit while
+the meter is in high-current mode.
 \end{warn}
 
 % =============================================================================
-\section{The experiment --- tracking vs.\ not tracking}
-Do both readings twice, back-to-back, in the same sunlight:
+\section{Procedure: tracking vs.\ not tracking}
+Take both readings twice, back-to-back, in the same sunlight:
 
 \begin{enumerate}
-  \item \textbf{Tracking:} panel aimed \textbf{straight at the sun} (tracker running and
-        pointed at it, or aim it by hand so its face is square to the sun). Record Voc,
-        then Isc.
-  \item \textbf{Not tracking:} leave the panel at a \textbf{fixed, off-sun angle} (e.g.\
-        flat/horizontal, or rotated $\sim$45$^\circ$ away). Record Voc, then Isc.
-  \item Repeat the pair at a few times of day (morning, noon, afternoon) --- the gap is
-        biggest when the sun is low.
+  \item \textbf{Tracking:} panel aimed straight at the sun (tracker running and pointed at
+        it, or aimed by hand so its face is square to the sun). Record Voc, then Isc.
+  \item \textbf{Not tracking:} panel left at a fixed, off-sun angle (for example
+        flat/horizontal, or rotated about 45$^\circ$ away). Record Voc, then Isc.
+  \item Repeat the pair at several times of day (morning, noon, afternoon).
 \end{enumerate}
 
 \begin{center}
@@ -162,34 +159,33 @@ Afternoon& & & & & \\ \hline
 \end{center}
 
 % =============================================================================
-\section{What the numbers mean}
+\section{Interpreting the readings}
 \begin{itemize}[leftmargin=1.6em]
   \item \textbf{Isc gain} $=\dfrac{I_{sc}(\text{tracking}) - I_{sc}(\text{not})}{I_{sc}(\text{not})}\times 100\%$.
-        A positive gain is the tracker capturing more sunlight --- that's your result.
-  \item \textbf{Approx.\ power} for any reading: $P \approx 0.74 \times V_{oc}\times I_{sc}$.
-        Compare the tracking vs.\ not-tracking power at each time.
-  \item You should see \textbf{Voc nearly unchanged} but \textbf{Isc (and power) clearly
-        higher when tracking} --- especially morning and afternoon.
+        This expresses the difference in current between the two cases.
+  \item \textbf{Approximate power} for any reading: $P \approx 0.74 \times V_{oc}\times I_{sc}$.
+        Compute it for the tracking and not-tracking cases at each time.
+  \item Voc typically changes little between the two cases, while Isc and power vary with
+        orientation. Record and compare the values.
 \end{itemize}
 
 \begin{note}
-For a fair comparison, take each tracking / not-tracking pair \textbf{quickly and in the
-same light}. If a cloud passes, redo that pair.
+For a consistent comparison, take each tracking / not-tracking pair quickly and in the
+same light. If a cloud passes during a pair, repeat that pair.
 \end{note}
 
 % =============================================================================
 \section{Troubleshooting}
 \begin{itemize}[leftmargin=1.6em]
-  \item \textbf{Current reads \texttt{0} or blows a fuse:} you used the \texttt{V$\Omega$mA}
-        jack for current. Use the \textbf{10\,A} jack and the \textbf{10A} dial position.
-  \item \textbf{Voltage shows \texttt{OL}:} wrong (too-low) range --- you're on DC
-        \textbf{200}, which is correct for $\sim$22\,V; make sure it's DC, not AC.
-  \item \textbf{Leading ``$-$'' sign:} leads are reversed. Fine --- swap them or just note
-        the value.
-  \item \textbf{Readings jump around:} passing clouds or the panel is warming/shading.
+  \item \textbf{Current reads \texttt{0} or blows a fuse:} the \texttt{V$\Omega$mA} jack
+        was used for current. Use the \textbf{10\,A} jack and the \textbf{10A} dial position.
+  \item \textbf{Voltage shows \texttt{OL}:} the range is too low. DC \textbf{200} is correct
+        for about 22\,V. Confirm the dial is on DC, not AC.
+  \item \textbf{Leading ``$-$'' sign:} the leads are reversed. Swap them, or record the
+        value as shown.
+  \item \textbf{Readings vary:} passing clouds, or the panel warming or partially shaded.
         Wait for steady sun.
-  \item \textbf{Meter turned off by itself:} auto power-off after 15\,min --- just turn it
-        back on.
+  \item \textbf{Meter turns off by itself:} auto power-off after 15\,min. Turn it back on.
 \end{itemize}
 
 \vspace{4pt}
