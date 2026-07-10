@@ -1,5 +1,5 @@
 #pragma once
-// Simulation constants — used only by hal_sim.cpp.
+// Simulation constants - used only by hal_sim.cpp.
 // Build with: pio run -e simulate
 
 #ifdef SIMULATE

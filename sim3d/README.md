@@ -1,6 +1,6 @@
 # SolarMax 3D Sky-Dome Simulator (raylib)
 
-A **real 3D** view of the sun crossing the sky dome and the panel tracking it —
+A **real 3D** view of the sun crossing the sky dome and the panel tracking it -
 built to *demonstrate the tracking code is correct*, not just to look nice.
 
 It runs the **exact firmware math**: the sun path arcs and the panel angle are
@@ -22,39 +22,39 @@ are textbook-obvious and match the classic sun-path diagram (`sun_paths.jpg`):
 | `4` Equinox sunrise | Mar 20, 06:10 | on the horizon **due east** (az ≈ 90°) | pinned at its −30° limit |
 
 The **Verify** panel (top-right) lists these known positions and a row turns
-**green** when the live sun lands on it — so anyone can confirm correctness at a
+**green** when the live sun lands on it - so anyone can confirm correctness at a
 glance. Press `0` any time to jump back to the equator demo.
 
 > **Single-axis reminder:** at solstice noon the panel correctly sits *flat* even
-> though the sun is 23.5° off — that offset is along the N–S rotation axis, which
+> though the sun is 23.5° off - that offset is along the N–S rotation axis, which
 > an east–west single-axis tracker cannot correct. That's physics, not a bug.
 
 ## Axis tilt: the manual seasonal set-angle
 The rotation axis has a **tilt** that, in real operation, the operator sets **by
-hand ~once a month** for best efficiency — separate from the motor, which drives
+hand ~once a month** for best efficiency - separate from the motor, which drives
 the daily east–west tracking automatically. The HUD's **PANEL TILT** block shows
 two *different kinds* of tilt:
 
-- **ideal now** — the live tilt to point **straight at the sun this instant**
+- **ideal now** - the live tilt to point **straight at the sun this instant**
   (`90° − elevation`, facing the sun's compass direction). It changes continuously
   through the day (facing E in the morning → W in the afternoon). This is a 2-axis
-  *reference*, not a settable value — our single-axis machine only approximates it
+  *reference*, not a settable value - our single-axis machine only approximates it
   via the motor plus the seasonal tilt.
-- **set `<month>`** — the **seasonal** tilt to dial in for the **upcoming** month
+- **set `<month>`** - the **seasonal** tilt to dial in for the **upcoming** month
   (`β = |latitude − declination|`, facing the equator), taken at noon on the **15th
   of the next month** (e.g. in December it shows the **mid-January** angle, so you
   set it ahead for the best average energy across January).
 
 **AUTO-TILT (`T`)** is a demonstration toggle: when **on**, the sim drives the axis
 to that monthly set-angle (and faces it toward the equator) so you can *see* the
-panel track the sun correctly — it turns a flat tracker that's ~57° off the winter
+panel track the sun correctly - it turns a flat tracker that's ~57° off the winter
 noon sun into one that stays within ~10° all day. When **off**, the tilt is manual
 (`[` `]`), i.e. normal operation. Full derivation and a season table are in
 [docs/sun_tracking_math.md](../docs/sun_tracking_math.md#stage-4--what-angle-should-the-panel-be-set-to-for-the-season).
 
 > Single-axis reality: the ±30° *rotation* limit still pins the panel near
 > sunrise/sunset, and in high summer the sun rises/sets far to the north, behind a
-> south-facing tilt — so auto-tilt helps most in winter, spring, and fall.
+> south-facing tilt - so auto-tilt helps most in winter, spring, and fall.
 
 ## Build & run
 ```bash
@@ -110,34 +110,34 @@ The bottom plot answers a specific question: *does the panel move at a constant
 speed, or does its speed change?* Press `G` twice to show **panel speed (°/hr) vs
 time**, with a dashed **15°/hr** reference (what a constant-speed panel would do).
 Its Y axis **auto-zooms** to the curve (min/max labelled on the left) so the
-shape is visible even though the values only span a few °/hr — except at the
+shape is visible even though the values only span a few °/hr - except at the
 equator, where a minimum window keeps the genuinely-flat 15°/hr line from
 zooming into noise.
 
 The panel's true tracking speed is **only** constant (a flat 15°/hr line) at the
-**equator**. Everywhere else it is **nonlinear** — fastest near solar noon, slowest
+**equator**. Everywhere else it is **nonlinear** - fastest near solar noon, slowest
 near sunrise/sunset, and the swing grows with latitude:
 
 | Site / date | speed at sunrise → **noon** → sunset |
 |---|---|
-| Equator (any date) | 15.0 → **15.0** → 15.0  (flat — linear) |
+| Equator (any date) | 15.0 → **15.0** → 15.0  (flat - linear) |
 | Tempe 33°N, equinox | 12.5 → **18.0** → 12.5  (nonlinear) |
 | 50°N, solstice | 8.6 → **15.4** → 8.6  (strongly nonlinear) |
 
 So sit at the equator (flat line ✓), then press `A` to raise the latitude and
-watch the speed curve **bow** — that is the nonlinearity made visible, and it is
+watch the speed curve **bow** - that is the nonlinearity made visible, and it is
 computed straight from the firmware's solar math. (The **angle** plot, `G` once,
 shows the same thing as an S-curve, with the ±30° limits where the motor pins.)
 
 ## What to look for
 - The blue **panel normal** points straight at the yellow **sun** whenever the
-  sun is within the panel's ±30° travel — that *is* "tracking is working."
+  sun is within the panel's ±30° travel - that *is* "tracking is working."
 - The three arcs (**magenta** June, **blue** equinox, **red** December) are the
   sun's path for those dates, drawn from the real solar math.
 - Raise **wind** past the stow threshold → state goes **STOW**, panel returns
   flat; lower it to resume tracking.
 - Scrub past sunset → **NIGHT**, panel parks.
-- Change **latitude** (`A`/`Z`) and watch the whole set of arcs rebuild — at
+- Change **latitude** (`A`/`Z`) and watch the whole set of arcs rebuild - at
   50°N they lean south and never reach the zenith, exactly like the 50°N panel
   in `sun_paths.jpg`.
 

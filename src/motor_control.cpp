@@ -12,7 +12,7 @@
 // Two references keep the estimate honest, both from the LIMIT SWITCHES at the
 // mechanical ends (PANEL_ANGLE_MIN = east, PANEL_ANGLE_MAX = west):
 //   • At boot we home to the east limit, then sweep to the west limit while timing
-//     it — that measures the travel speed (deg/s) automatically, no manual step.
+//     it - that measures the travel speed (deg/s) automatically, no manual step.
 //   • Any time a limit switch trips during operation, we snap the estimate to that
 //     end's exact angle. The tracker naturally pins east each morning and west each
 //     evening, so accumulated drift is erased twice a day for free.
@@ -82,7 +82,7 @@ static bool runToLimit(bool west, unsigned long timeoutMs) {
 void motorHomeAndCalibrate() {
     Serial.println("[MOTOR] Homing to east limit...");
     if (!runToLimit(false, HOMING_TIMEOUT_MS)) {
-        Serial.println("[MOTOR] ERROR: never reached east limit — check limit-switch wiring");
+        Serial.println("[MOTOR] ERROR: never reached east limit - check limit-switch wiring");
         calibrated = false;
         return;
     }
@@ -91,7 +91,7 @@ void motorHomeAndCalibrate() {
     Serial.println("[MOTOR] Sweeping to west limit to measure travel speed...");
     unsigned long t0 = millis();
     if (!runToLimit(true, HOMING_TIMEOUT_MS)) {
-        Serial.println("[MOTOR] ERROR: never reached west limit — check limit-switch wiring");
+        Serial.println("[MOTOR] ERROR: never reached west limit - check limit-switch wiring");
         calibrated = false;
         return;
     }
@@ -113,7 +113,7 @@ bool driveToAngle(float targetDeg) {
     targetDeg = constrain(targetDeg, PANEL_ANGLE_MIN, PANEL_ANGLE_MAX);
 
     if (!calibrated) {
-        Serial.println("[MOTOR] ERROR: not calibrated — check limit switches and reset.");
+        Serial.println("[MOTOR] ERROR: not calibrated - check limit switches and reset.");
         return false;
     }
 

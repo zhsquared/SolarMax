@@ -2,7 +2,7 @@
 
 // One decision step. Mirrors the original main.cpp state machine exactly, but as
 // pure logic: it returns the target angle and any transition note instead of
-// driving motors or printing — the caller does the I/O.
+// driving motors or printing - the caller does the I/O.
 TrackerStep TrackerCore::step(const TrackerConfig& c, const TrackerInputs& in) {
     TrackerStep out;
     out.note = nullptr;

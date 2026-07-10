@@ -1,8 +1,8 @@
 # Using the Repo
 
 ## Prerequisites
-- **PlatformIO** (VS Code extension or CLI) — for firmware, native sim, and tests.
-- **CMake + a C++17 compiler** — only for the interactive FTXUI simulator.
+- **PlatformIO** (VS Code extension or CLI) - for firmware, native sim, and tests.
+- **CMake + a C++17 compiler** - only for the interactive FTXUI simulator.
 
 > If `pio` isn't on your PATH, use the full path: `~/.platformio/penv/bin/pio`.
 
@@ -19,7 +19,7 @@
 ## Typical workflows
 
 ### Develop / demo without hardware
-Use the **interactive simulator** ([simulation.md](simulation.md)) — it runs the real
+Use the **interactive simulator** ([simulation.md](simulation.md)) - it runs the real
 control logic and lets you scrub time, jump to solstices, and change wind/roof angle.
 
 ### Bring up real hardware (first assembly)
@@ -30,14 +30,14 @@ control logic and lets you scrub time, jump to solstices, and change wind/roof a
    `runCalibration()` in `motor_control`), update `config.h`.
 4. Flash `esp32dev`. On boot it prints a **self-check** report before tracking.
 
-## Configuration — everything is in `include/config.h`
+## Configuration - everything is in `include/config.h`
 Edit these before flashing a real install:
 
 | Setting | Meaning |
 |---------|---------|
 | `LATITUDE`, `LONGITUDE` | Install site (decimal degrees; negative longitude = West) |
 | `TIMEZONE_OFFSET` | Hours from UTC (display only) |
-| `AXIS_TILT_DEG`, `AXIS_AZIMUTH_DEG` | **Roof angle** — how the rotation axis is mounted (0/0 = flat, N-S) |
+| `AXIS_TILT_DEG`, `AXIS_AZIMUTH_DEG` | **Roof angle** - how the rotation axis is mounted (0/0 = flat, N-S) |
 | `WIFI_SSID`, `WIFI_PASS` | For NTP time sync |
 | `PANEL_ANGLE_MIN/MAX` | Mechanical travel limits (±30°) |
 | `POT_ADC_MIN/MAX` | Potentiometer calibration (from bring-up) |
@@ -47,8 +47,8 @@ Edit these before flashing a real install:
 
 ## Tests & CI
 - `pio test -e native` runs two suites:
-  - **test_solar** — sun angles vs. known solstice/equinox values.
-  - **test_pins** — every `config.h` pin checked against ESP32 constraints (input-only,
+  - **test_solar** - sun angles vs. known solstice/equinox values.
+  - **test_pins** - every `config.h` pin checked against ESP32 constraints (input-only,
     ADC1, collisions, strapping pins).
 - CI runs on push/PR (see `.github/workflows/`).
 

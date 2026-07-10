@@ -1,5 +1,5 @@
 #pragma once
-// Minimal RTClib shim — provides DateTime for native simulation builds.
+// Minimal RTClib shim - provides DateTime for native simulation builds.
 // Only the fields and constructors used by this project are implemented.
 
 #include <stdint.h>
@@ -39,7 +39,7 @@ public:
     uint8_t  second()   const { return (uint8_t)  _decode().tm_sec;          }
 };
 
-// Stub — real RTC hardware not used in simulation
+// Stub - real RTC hardware not used in simulation
 class RTC_DS3231 {
 public:
     bool     begin()              { return false; }

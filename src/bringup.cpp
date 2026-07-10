@@ -1,14 +1,14 @@
 #ifdef BRINGUP
-// Hardware bring-up tool — flash to a real ESP32 to validate each peripheral
+// Hardware bring-up tool - flash to a real ESP32 to validate each peripheral
 // one at a time, BEFORE the full system is assembled.
 //
 //   pio run -e bringup --target upload && pio device monitor
 //
 // Open Serial Monitor at 115200, then press a number to run a test:
-//   1  I2C scan        — confirms DS3231 RTC wiring (expect device at 0x68)
-//   2  Potentiometer   — live ADC + mapped angle (turn the pot, watch it move)
-//   3  Limit switches  — live state of CW/CCW switches (press each to confirm)
-//   4  Anemometer      — analog mV on GPIO 35 + computed mph (spin/blow on it)
+//   1  I2C scan        - confirms DS3231 RTC wiring (expect device at 0x68)
+//   2  Potentiometer   - live ADC + mapped angle (turn the pot, watch it move)
+//   3  Limit switches  - live state of CW/CCW switches (press each to confirm)
+//   4  Anemometer      - analog mV on GPIO 35 + computed mph (spin/blow on it)
 //   m  reprint this menu
 //
 // Each test runs until you press 'm' or another menu key. These are RAW reads
@@ -20,7 +20,7 @@
 
 static void printMenu() {
     Serial.println("\n========= SolarMax Hardware Bring-Up =========");
-    Serial.println(" 1  I2C scan        (DS3231 RTC — expect 0x68)");
+    Serial.println(" 1  I2C scan        (DS3231 RTC - expect 0x68)");
     Serial.println(" 2  Potentiometer   (GPIO 34 ADC + angle)");
     Serial.println(" 3  Limit switches  (GPIO 32 CW / GPIO 33 CCW)");
     Serial.println(" 4  Anemometer      (GPIO 35 analog mV -> mph)");
@@ -53,7 +53,7 @@ static void testI2CScan() {
             }
         }
         if (found == 0)
-            Serial.println("  no I2C devices — check SDA/SCL/VCC/GND and 3.3V power");
+            Serial.println("  no I2C devices - check SDA/SCL/VCC/GND and 3.3V power");
         else
             Serial.printf("  %d device(s) found\n", found);
         Serial.println("  ---");

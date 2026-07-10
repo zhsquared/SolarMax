@@ -1,10 +1,10 @@
-// SolarMax — 3D Sky-Dome Simulator (raylib).
+// SolarMax - 3D Sky-Dome Simulator (raylib).
 //
 // A real 3D view of the sun crossing the sky dome and the panel tracking it,
 // driven by the ACTUAL firmware math (lib/solar_math) and control brain
 // (lib/tracker_core). Built to demonstrate correctness against textbook sun
 // paths: it defaults to the EQUATOR (lat 0, lon 0), where the answers are
-// self-evident and match sun_paths.jpg —
+// self-evident and match sun_paths.jpg -
 //     equinox noon  -> sun at the zenith (90 deg)
 //     June solstice -> arc 23.5 deg to the NORTH  (noon elev 66.5 deg)
 //     Dec  solstice -> arc 23.5 deg to the SOUTH  (noon elev 66.5 deg)
@@ -85,7 +85,7 @@ static void label3D(Camera cam, V3 dir, float s, const char* txt, Color col, int
 int main() {
     // ── Window ──────────────────────────────────────────────────────────────
     SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_WINDOW_RESIZABLE);
-    InitWindow(1180, 760, "SolarMax — 3D Sky-Dome Tracker");
+    InitWindow(1180, 760, "SolarMax - 3D Sky-Dome Tracker");
     SetTargetFPS(60);
     SetExitKey(KEY_NULL);            // we handle ESC ourselves (cancel edit vs quit)
     gUI = loadUIFont();
@@ -102,7 +102,7 @@ int main() {
     float  wind       = 5.0f;
     float  panelActual = 0.0f;
 
-    // Reference arcs (recomputed whenever latitude changes) — the REAL math.
+    // Reference arcs (recomputed whenever latitude changes) - the REAL math.
     float lastLat = 1e9f;
     std::vector<V3> arcJune, arcEqx, arcDec;
     auto rebuildArcs = [&]{
@@ -224,7 +224,7 @@ int main() {
 
         // Monthly set-angle: the efficiency-optimal fixed tilt for the *upcoming*
         // month, taken at noon on the 15th of the next month (you adjust once a
-        // month, ahead of time — e.g. in December you set for mid-January).
+        // month, ahead of time - e.g. in December you set for mid-January).
         int nmY = now.year, nmM = now.month + 1;
         if (nmM > 12) { nmM = 1; nmY++; }
         int packedMon = nmY*100 + nmM;
@@ -288,9 +288,9 @@ int main() {
             }
 
             // Reference sun paths (match sun_paths.jpg legend).
-            drawArc(arcJune, Color{ 235, 70, 160, 255 });   // June solstice — magenta
-            drawArc(arcEqx,  Color{ 90, 130, 255, 255 });   // Equinoxes    — blue
-            drawArc(arcDec,  Color{ 235, 70,  60, 255 });   // Dec solstice — red
+            drawArc(arcJune, Color{ 235, 70, 160, 255 });   // June solstice - magenta
+            drawArc(arcEqx,  Color{ 90, 130, 255, 255 });   // Equinoxes    - blue
+            drawArc(arcDec,  Color{ 235, 70,  60, 255 });   // Dec solstice - red
 
             // Live sun: sphere + ray from origin + drop line to ground.
             if (last.sun.aboveHorizon) {
@@ -348,9 +348,9 @@ int main() {
         line(b, wind >= cfg.windStowMph ? RED : GREEN);
         y += 6;
         // Panel tilt angles. Two different things:
-        //  * ideal now — the live tilt to point straight at the sun this instant
+        //  * ideal now - the live tilt to point straight at the sun this instant
         //    (90 - elevation, facing the sun); changes continuously. A reference.
-        //  * set <month> — the seasonal tilt the operator dials in for the upcoming
+        //  * set <month> - the seasonal tilt the operator dials in for the upcoming
         //    month (|lat - decl|); what AUTO-TILT applies. Changes ~once a month.
         static const char* MON[]     = {"Jan","Feb","Mar","Apr","May","Jun",
                                         "Jul","Aug","Sep","Oct","Nov","Dec"};
@@ -393,7 +393,7 @@ int main() {
         }
 
         // Verification panel (known equator positions). A row lights green when
-        // the live sun matches it — hit presets 1/2/3/4 at the equator to check.
+        // the live sun matches it - hit presets 1/2/3/4 at the equator to check.
         bool atEquator = std::fabs(cfg.lat) < 0.6f && std::fabs(cfg.lon) < 0.6f;
         int vw = 384, vx = GetScreenWidth() - vw - 14, vy = 10;
         DrawRectangle(vx, vy, vw, 26 + (int)checks.size()*22 + 30, Fade(BLACK, 0.55f));

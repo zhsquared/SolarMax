@@ -1,6 +1,6 @@
 #pragma once
 
-// ── Location (Tempe, AZ — update for actual install site) ────────────────────
+// ── Location (Tempe, AZ - update for actual install site) ────────────────────
 #define LATITUDE          33.4255f    // Decimal degrees North
 #define LONGITUDE       -111.9400f    // Decimal degrees (negative = West)
 #define TIMEZONE_OFFSET      -7       // Arizona = UTC-7, no DST
@@ -23,7 +23,7 @@
 #define PIN_MOTOR_LEN    14   // Enable left  half-bridge (set HIGH)
 
 // ── Potentiometer (shaft angle feedback) ─────────────────────────────────────
-// ADC1 pins only — safe to read while WiFi is active
+// ADC1 pins only - safe to read while WiFi is active
 #define PIN_POT          34   // ADC1_CH6, input-only GPIO
 #define POT_SAMPLES       8   // Readings averaged per call
 
@@ -37,7 +37,7 @@
 #define PIN_LIMIT_CCW    33   // Trips at full east travel
 #define LIMIT_ACTIVE   HIGH   // Change to LOW if using normally-closed switches
 
-// ── Anemometer (Adafruit 1733 — analog 0.4–2.0 V output) ─────────────────────
+// ── Anemometer (Adafruit 1733 - analog 0.4–2.0 V output) ─────────────────────
 // The 1733 is a powered ANALOG anemometer (see docs/wiring.md):
 //   • Power 7–24 V  -> wire to the 12 V rail. It will NOT run on the 5 V rail.
 //   • Signal 0.4–2.0 V -> GPIO35 ADC directly. NO divider (2.0 V < 3.3 V ADC max).
@@ -53,10 +53,10 @@
 // TODO (verify on the bench, then optionally enable): a healthy 1733 idles near
 //   0.40 V even in dead calm, so a reading pinned near 0 mV means it lost 12 V power
 //   or the signal wire is open. Once you confirm the real idle voltage, consider
-//   failing SAFE — treat mv < ~150 mV as a fault and report high wind so the panel
+//   failing SAFE - treat mv < ~150 mV as a fault and report high wind so the panel
 //   stows. Left out for now so a genuinely calm day isn't misread as a fault.
 
-// ── LDR Sensors (diagnostic only — not used for primary tracking) ─────────────
+// ── LDR Sensors (diagnostic only - not used for primary tracking) ─────────────
 #define PIN_LDR_EAST     36   // ADC1_CH0, input-only GPIO
 #define PIN_LDR_WEST     39   // ADC1_CH3, input-only GPIO
 #define LDR_FLAG_THRESH  300  // ADC units mismatch that triggers a diagnostic warning
@@ -73,11 +73,11 @@
 
 // ── Motor Speed Limits ────────────────────────────────────────────────────────
 #define MOTOR_PWM_MIN    55   // Minimum duty to overcome stiction (tune to your motor)
-#define MOTOR_PWM_MAX   200   // Maximum duty — caps speed to protect worm gear
+#define MOTOR_PWM_MAX   200   // Maximum duty - caps speed to protect worm gear
 
 // ── Panel Geometry ────────────────────────────────────────────────────────────
-#define PANEL_ANGLE_MIN  -30.0f   // Degrees — east mechanical limit
-#define PANEL_ANGLE_MAX   30.0f   // Degrees — west mechanical limit
+#define PANEL_ANGLE_MIN  -30.0f   // Degrees - east mechanical limit
+#define PANEL_ANGLE_MAX   30.0f   // Degrees - west mechanical limit
 #define PANEL_STOW_ANGLE   0.0f   // Flat/horizontal stow position for high wind
 
 // ── Rotation-Axis Orientation (set per roof) ─────────────────────────────────
@@ -98,7 +98,7 @@
 // ── Position control (pot-less: timed dead-reckoning + limit-switch homing) ──
 // The panel angle is estimated from motor run-time at a fixed speed, referenced
 // by the two limit switches. The speed is measured automatically at every boot by
-// sweeping limit-to-limit — no manual calibration. (The potentiometer above is no
+// sweeping limit-to-limit - no manual calibration. (The potentiometer above is no
 // longer used for position; it stays wired but only as a spare/diagnostic.)
 #define MOTOR_PWM_MOVE      35      // Fixed duty (0-255) for positioning moves (25% of 140; lower = slower)
 #define HOMING_TIMEOUT_MS 180000UL  // Max time to reach a limit while homing/calibrating (slow speed needs longer)

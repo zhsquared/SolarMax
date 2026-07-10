@@ -30,7 +30,7 @@ int main() {
     // ── Live state (shared between the update thread and the renderer) ──────────
     std::mutex   mtx;
     TrackerCore  core;
-    TrackerConfig cfg;          // lat/lon/axis/wind thresholds — editable live
+    TrackerConfig cfg;          // lat/lon/axis/wind thresholds - editable live
     TrackerStep  last{};        // most recent decision (read by renderer)
 
     int    tzOffset    = -7;    // Arizona (display only)
@@ -276,7 +276,7 @@ int main() {
         }));
 
         // Verification vs known equator sun positions. A row turns green when the
-        // live sun matches it — at the equator, hit presets 1/2/3/4 to land on one.
+        // live sun matches it - at the equator, hit presets 1/2/3/4 to land on one.
         bool atEquator = std::fabs(cfg.lat) < 0.6f && std::fabs(cfg.lon) < 0.6f;
         Elements vrows;
         for (auto& ck : checks) {
@@ -330,7 +330,7 @@ int main() {
         }) );
 
         return vbox({
-            text("  SolarMax — Sun Tracking Simulator  ") | bold | center,
+            text("  SolarMax - Sun Tracking Simulator  ") | bold | center,
             hbox({ status | size(WIDTH,EQUAL,40), sky | flex, verify | size(WIDTH,EQUAL,32) }),
             settings,
             help,
@@ -360,7 +360,7 @@ int main() {
         if (ev == Event::Character('p')) { yaw   += 8*M_PI/180; return true; }
         if (ev == Event::Character('n')) { pitch = std::max( 2*M_PI/180, pitch-6*M_PI/180); return true; }
         if (ev == Event::Character('m')) { pitch = std::min(88*M_PI/180, pitch+6*M_PI/180); return true; }
-        // presets — equator solar noon is 12:00 UTC at lon 0
+        // presets - equator solar noon is 12:00 UTC at lon 0
         if (ev == Event::Character('1')) { epoch = epochOf(2026, 6,21,12,0); return true; } // summer solstice noon
         if (ev == Event::Character('2')) { epoch = epochOf(2026,12,21,12,0); return true; } // winter solstice noon
         if (ev == Event::Character('3')) { epoch = epochOf(2026, 3,20,12,0); return true; } // equinox noon

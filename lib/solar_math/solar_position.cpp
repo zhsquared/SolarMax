@@ -1,4 +1,4 @@
-// NOAA Solar Calculator algorithm — accuracy ~0.01°
+// NOAA Solar Calculator algorithm - accuracy ~0.01°
 // Reference: https://gml.noaa.gov/grad/solcalc/calcdetails.html
 //
 // Big picture: given a date, time (UTC) and a location on Earth, we work out
@@ -159,7 +159,7 @@ SolarAngles calculateSolarPositionRaw(int year, int month, int day,
     return result;
 }
 
-// DateTime convenience wrapper — excluded from native builds.
+// DateTime convenience wrapper - excluded from native builds.
 #ifndef NATIVE_BUILD
 #include <RTClib.h>
 SolarAngles calculateSolarPosition(const DateTime& dt, float lat, float lon,

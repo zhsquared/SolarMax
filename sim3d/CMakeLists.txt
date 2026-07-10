@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
 
-# raylib — small, self-contained 3D library. Fetched + built on first configure
+# raylib - small, self-contained 3D library. Fetched + built on first configure
 # (needs internet once). Works on Windows, macOS, and Linux.
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(raylib

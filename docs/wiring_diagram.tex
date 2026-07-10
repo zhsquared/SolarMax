@@ -57,7 +57,7 @@
 
 \begin{document}
 
-\begin{center}{\Large\bfseries SolarMax — Wiring Diagrams}\\[2pt]
+\begin{center}{\Large\bfseries SolarMax - Wiring Diagrams}\\[2pt]
 \small Visual companion to \texttt{wiring.md} (the tables are the authoritative per-pin
 detail). Wires colored by net; all grounds are one common ground. Pin names match
 \texttt{include/config.h}.\end{center}
@@ -106,7 +106,7 @@ detail). Wires colored by net; all grounds are one common ground. Pin names matc
 \draw[pwr,net12v] (estop-3-1.east) -- ++(0.45,0) |- (rly-4-1.west); % E-stop NC-out -> relay 86 coil
 \draw[pwr,net12v] (rly-3-1.east) -- ++(0.45,0) |- (bts-2-1.west);   % relay 87 -> BTS B+
 
-% ===== GND (black) — one common ground bus below everything =====
+% ===== GND (black) - one common ground bus below everything =====
 \coordinate (gL) at (-1.2,-11.6);
 \coordinate (gR) at (19.0,-11.6);
 \draw[pwr,netgnd] (gL) -- (gR);
@@ -121,7 +121,7 @@ detail). Wires colored by net; all grounds are one common ground. Pin names matc
 \draw[pwr,netgnd] (bts-3-1.west) -- (btsg) -- (btsg |- gL);
 \draw[pwr,netgnd] (bts-5-1.west) -- (bts-5-1.west -| btsg);
 
-% ===== 5 V (orange) — buck OUT+ -> Schottky -> ESP 5V -> BTS VCC =====
+% ===== 5 V (orange) - buck OUT+ -> Schottky -> ESP 5V -> BTS VCC =====
 \draw[pwr,net5v] (buck-4-1.east) -- ++(0.4,0) |- (d5.west);
 \draw[pwr,net5v] (d5.east) -- (esp-2-1.west);
 \draw[pwr,net5v] (esp-2-1.west) -- ++(-0.15,0) |- (bts-4-1.east); % ESP 5V -> BTS VCC
@@ -134,8 +134,8 @@ detail). Wires colored by net; all grounds are one common ground. Pin names matc
 \node[align=left, font=\scriptsize, anchor=north west, text width=6.2cm] at (19.6,0) {%
 \textbf{How the safety chain works}\\[3pt]
 \textbf{Main switch} breaks 12\,V+ to everything (ON/OFF).\\[3pt]
-\textbf{E-stop} (red mushroom, NC) sits in the relay \emph{coil}: pressing it — or any
-broken wire — drops the coil, the relay opens, and \textbf{motor power is cut}. Fail-safe.
+\textbf{E-stop} (red mushroom, NC) sits in the relay \emph{coil}: pressing it - or any
+broken wire - drops the coil, the relay opens, and \textbf{motor power is cut}. Fail-safe.
 The self-locking worm gear then holds the panel.\\[3pt]
 The E-stop button carries only the small coil current; the \textbf{40\,A relay} carries the
 $\sim$19\,A motor current. Use \textbf{12\,AWG} on the motor path.\\[6pt]
@@ -223,9 +223,9 @@ on the left}, \textbf{sensors on the right}. Power/ground pins tag out to the fa
 
 % =============================================================================
 \newpage
-\begin{center}{\large\bfseries 3. Real Circuits — Dividers \& 5\,V Rail Diode}\\[1pt]
+\begin{center}{\large\bfseries 3. Real Circuits - Dividers \& 5\,V Rail Diode}\\[1pt]
 \small Drawn with proper component symbols (this is the part that becomes a KiCad schematic).
-Build these exactly — they protect the ESP32 and set correct readings.\end{center}
+Build these exactly - they protect the ESP32 and set correct readings.\end{center}
 
 \vspace{0.4cm}
 \begin{adjustbox}{max width=\textwidth, max totalheight=0.82\textheight, center}
@@ -247,7 +247,7 @@ Build these exactly — they protect the ESP32 and set correct readings.\end{cen
 
 % ===== (b) LDR divider (x2) =====
 \begin{scope}[yshift=-5.8cm]
-\node[font=\bfseries] at (3.2,1.2) {(b)\ \ LDR (each of two):\ 3.3\,V — LDR — ADC — 10\,k$\Omega$ — GND};
+\node[font=\bfseries] at (3.2,1.2) {(b)\ \ LDR (each of two):\ 3.3\,V - LDR - ADC - 10\,k$\Omega$ - GND};
 \draw[net3v3, line width=1pt]
   (0,0) node[left,font=\footnotesize]{3.3\,V}
   to[photoresistor, l=LDR, color=black] (3.2,0) coordinate(tapB);
@@ -268,7 +268,7 @@ Build these exactly — they protect the ESP32 and set correct readings.\end{cen
   to[sD, l=Schottky, color=black] (3.2,0)
   node[right,font=\footnotesize,align=left]{\ ESP32 5V pin\\\ BTS7960 VCC\\\ anemometer +5V};
 \node[font=\footnotesize, align=center] at (1.6,-1.2)
-  {stripe (cathode) toward the ESP — blocks backfeed to USB};
+  {stripe (cathode) toward the ESP - blocks backfeed to USB};
 \end{scope}
 
 \end{circuitikz}

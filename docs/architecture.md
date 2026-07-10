@@ -41,7 +41,7 @@ reused unchanged everywhere.
 | `diagnostics` | `src/diagnostics.*` | Boot self-check report | Yes |
 | `hal_sim` | `src/hal_sim.*` | Fake hardware for the native auto-runner | Sim |
 | `arduino_compat` | `lib/arduino_compat/` | Arduino/RTClib shims for native builds | Sim |
-| `config.h` | `include/` | All pins, location, thresholds, roof angle | — |
+| `config.h` | `include/` | All pins, location, thresholds, roof angle | - |
 
 ## State machine
 The heart of `tracker_core`. Every cycle it evaluates the current time, sun, and
@@ -64,8 +64,8 @@ stateDiagram-v2
 |-------|----------|
 | `INIT` | Home the panel east, then pick TRACKING or NIGHT |
 | `TRACKING` | Drive panel to the computed sun angle |
-| `STOW` | High wind — hold flat until wind drops below the resume threshold |
-| `NIGHT` | Sun below `SUN_MIN_ELEV_DEG` — park east, wait for sunrise |
+| `STOW` | High wind - hold flat until wind drops below the resume threshold |
+| `NIGHT` | Sun below `SUN_MIN_ELEV_DEG` - park east, wait for sunrise |
 | `ERROR` | No valid time source (RTC + NTP both failed) |
 
 ## Build targets
@@ -83,6 +83,6 @@ One codebase, five targets (see [usage.md](usage.md)):
 ## Why this split matters
 - **Testable:** the sun math and state machine are pure, so they run in unit tests
   and a desktop simulator with no hardware.
-- **Faithful sim:** the simulator links the *real* brain — it's not a re-implementation.
+- **Faithful sim:** the simulator links the *real* brain - it's not a re-implementation.
 - **Safe to change:** swapping a sensor (e.g., the anemometer) touches only the
   hardware layer, not the control logic.

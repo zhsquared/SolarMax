@@ -1,11 +1,11 @@
-# Motor Position Control — turning a target angle into movement
+# Motor Position Control - turning a target angle into movement
 
 Stage 2 of [the tracking math](sun_tracking_math.md) gives a **target panel angle**
 in degrees. This doc covers what happens next: **how that number becomes actual
-motor movement** — without a position sensor.
+motor movement** - without a position sensor.
 
 **Where the code is:** [`src/motor_control.cpp`](../src/motor_control.cpp) (real
-firmware — excluded from simulation builds by `#ifndef SIMULATE`). It is called
+firmware - excluded from simulation builds by `#ifndef SIMULATE`). It is called
 once per control cycle from [`src/main.cpp`](../src/main.cpp): `driveToAngle(targetAngle)`.
 Tuning constants are in [`include/config.h`](../include/config.h).
 
@@ -36,17 +36,17 @@ angle moved = run time × speed
 Two things keep that estimate honest, both from the **limit switches** at the
 mechanical ends (`PANEL_ANGLE_MIN` = −30° east, `PANEL_ANGLE_MAX` = +30° west):
 
-- **Homing establishes a known start.** On boot it drives to the east limit — now it
+- **Homing establishes a known start.** On boot it drives to the east limit - now it
   *knows* the panel is at −30°.
 - **The limits re-zero drift.** Whenever a limit switch trips during operation, the
   estimate snaps to that end's exact angle. The tracker naturally pins **east every
   morning and west every evening**, so accumulated error is erased **twice a day for
-  free** — open-loop drift can never build up beyond a single day.
+  free** - open-loop drift can never build up beyond a single day.
 
 ---
 
 ## 2. Auto-calibration at boot (`motorHomeAndCalibrate`)
-The travel speed is measured automatically at every power-up — the operator does
+The travel speed is measured automatically at every power-up - the operator does
 nothing. Called from `setup()` right after `motorInit()`:
 
 1. Drive to the **east** limit (`runToLimit`) → set `estimatedAngle = −30°`.
@@ -62,11 +62,11 @@ It prints, e.g.:
 ```
 
 The panel never powers off in normal operation, so this one-time boot sweep is only
-ever seen while (re)programming — never in the field.
+ever seen while (re)programming - never in the field.
 
 > **The limit switches are now load-bearing.** If one is miswired and never trips,
 > homing times out (`HOMING_TIMEOUT_MS`), prints
-> `never reached … limit — check limit-switch wiring`, and the tracker stays
+> `never reached … limit - check limit-switch wiring`, and the tracker stays
 > un-calibrated (it won't drive until reset). Verify them first.
 
 ---
@@ -98,7 +98,7 @@ the panel holds position with the motor off).
 ---
 
 ## 4. Accuracy and trade-offs
-Open-loop timing is not as precise as a real sensor — that's the deal we accept for
+Open-loop timing is not as precise as a real sensor - that's the deal we accept for
 having no position feedback:
 
 - Speed varies a little with **battery voltage, load (a steep panel needs more

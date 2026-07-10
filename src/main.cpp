@@ -54,7 +54,7 @@ void setup() {
     Serial.begin(115200);
     delay(500);
     Serial.println("\n============================");
-    Serial.println("  SolarMax v1.0  — Noopy Industries");
+    Serial.println("  SolarMax v1.0  - Noopy Industries");
     Serial.println("============================");
 
     motorInit();
@@ -87,7 +87,7 @@ void loop() {
     TrackerStep s = core.step(cfg, in);
 
     if (s.state == TS_ERROR) {
-        Serial.println("[ERROR] No valid time source — fix WiFi/RTC and reset.");
+        Serial.println("[ERROR] No valid time source - fix WiFi/RTC and reset.");
         delay(10000);
         return;
     }

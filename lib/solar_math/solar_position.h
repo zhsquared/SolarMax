@@ -1,6 +1,6 @@
 #pragma once
 
-// Mechanical and tracking defaults — override in your project's config header
+// Mechanical and tracking defaults - override in your project's config header
 // by defining these before including solar_position.h.
 #ifndef PANEL_ANGLE_MIN
 #define PANEL_ANGLE_MIN  -30.0f
@@ -28,7 +28,7 @@ struct SolarAngles {
     bool  aboveHorizon;  // True when sun is high enough to track
 };
 
-// Core astronomical algorithm — no Arduino or RTClib dependency.
+// Core astronomical algorithm - no Arduino or RTClib dependency.
 // Safe to call from native unit tests.
 // hourUTC: decimal hours in UTC (e.g. 19.5 = 19:30 UTC)
 // lat/lon: decimal degrees, negative lon = West
@@ -44,7 +44,7 @@ SolarAngles calculateSolarPositionRaw(int year, int month, int day,
 double panelAngleForAxis(double elevDeg, double azDeg,
                          double axisTiltDeg, double axisAzimuthDeg);
 
-// Arduino/ESP32 convenience wrapper — not available in native unit tests.
+// Arduino/ESP32 convenience wrapper - not available in native unit tests.
 #ifndef NATIVE_BUILD
 #include <RTClib.h>
 SolarAngles calculateSolarPosition(const DateTime& dt, float lat, float lon,

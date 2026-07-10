@@ -20,18 +20,18 @@ bool runSelfCheck() {
 
     Serial.println("\n----- Self-check -----");
 
-    // 1. Time source — a plausible year means the RTC/NTP gave us real time.
+    // 1. Time source - a plausible year means the RTC/NTP gave us real time.
     DateTime utc = getCurrentTimeUTC();
     if (utc.year() >= 2024 && utc.year() <= 2099) {
         snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d UTC",
                  utc.year(), utc.month(), utc.day(), utc.hour(), utc.minute());
         report(0, "Time source", buf);
     } else {
-        snprintf(buf, sizeof(buf), "implausible year %d — RTC not set / NTP failed", utc.year());
+        snprintf(buf, sizeof(buf), "implausible year %d - RTC not set / NTP failed", utc.year());
         report(2, "Time source", buf);
     }
 
-    // 2. Panel position estimate — should sit inside the mechanical range after
+    // 2. Panel position estimate - should sit inside the mechanical range after
     //    homing. Out of range means homing/calibration didn't complete.
     float angle = readPanelAngle();
     if (angle >= PANEL_ANGLE_MIN - 5.0f && angle <= PANEL_ANGLE_MAX + 5.0f) {
@@ -39,31 +39,31 @@ bool runSelfCheck() {
                  angle, (float)PANEL_ANGLE_MIN, (float)PANEL_ANGLE_MAX);
         report(0, "Panel est", buf);
     } else {
-        snprintf(buf, sizeof(buf), "%.1f deg out of range — homing failed? check limit switches", angle);
+        snprintf(buf, sizeof(buf), "%.1f deg out of range - homing failed? check limit switches", angle);
         report(1, "Panel est", buf);
     }
 
-    // 3. Limit switches — both tripped at once is electrically impossible and
+    // 3. Limit switches - both tripped at once is electrically impossible and
     //    points at a wiring fault or wrong LIMIT_ACTIVE polarity.
     bool cw = limitCW(), ccw = limitCCW();
     if (cw && ccw) {
-        report(1, "Limit switches", "BOTH tripped — wiring fault or wrong LIMIT_ACTIVE");
+        report(1, "Limit switches", "BOTH tripped - wiring fault or wrong LIMIT_ACTIVE");
     } else {
         snprintf(buf, sizeof(buf), "CW=%s CCW=%s", cw ? "trip" : "open", ccw ? "trip" : "open");
         report(0, "Limit switches", buf);
     }
 
-    // 4. Wind — a sane reading is >= 0 and below a hurricane.
+    // 4. Wind - a sane reading is >= 0 and below a hurricane.
     float wind = readWindSpeedMPH();
     if (wind >= 0.0f && wind < 150.0f) {
         snprintf(buf, sizeof(buf), "%.1f mph", wind);
         report(0, "Wind sensor", buf);
     } else {
-        snprintf(buf, sizeof(buf), "%.1f mph — implausible, check anemometer wiring / 12 V power", wind);
+        snprintf(buf, sizeof(buf), "%.1f mph - implausible, check anemometer wiring / 12 V power", wind);
         report(1, "Wind sensor", buf);
     }
 
-    // 5. Solar math — sanity-check the current computed sun position.
+    // 5. Solar math - sanity-check the current computed sun position.
     SolarAngles sa = calculateSolarPosition(utc, LATITUDE, LONGITUDE);
     snprintf(buf, sizeof(buf), "el=%.1f az=%.1f panel=%.1f (%s)",
              sa.elevation, sa.azimuth, sa.panelAngle,

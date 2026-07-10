@@ -1,6 +1,6 @@
 #ifdef SIMULATE
 
-// Simulated hardware layer — replaces motor_control, sensors, and time_manager
+// Simulated hardware layer - replaces motor_control, sensors, and time_manager
 // when building with -DSIMULATE (pio run -e simulate).
 //
 // What it does:
@@ -24,7 +24,7 @@ static float    _simAngle   = 0.0f;
 
 bool timeManagerInit() {
     _simStartMs = millis();
-    Serial.printf("[SIM] Simulation start: %04d-%02d-%02d %02d:%02d UTC — running at %lux speed\n",
+    Serial.printf("[SIM] Simulation start: %04d-%02d-%02d %02d:%02d UTC - running at %lux speed\n",
                   SIM_START_YEAR, SIM_START_MONTH, SIM_START_DAY,
                   SIM_START_HOUR, SIM_START_MIN, SIM_SPEED_FACTOR);
     Serial.println("[SIM] (~12 real minutes covers a full simulated day)");
@@ -50,7 +50,7 @@ bool isTimeForNTPResync(const DateTime& utc) {
 
 void motorInit() {
     _simAngle = 0.0f;
-    Serial.println("[SIM] Motor ready — panel at 0.0 deg");
+    Serial.println("[SIM] Motor ready - panel at 0.0 deg");
 }
 
 float readPanelAngle() { return _simAngle; }
@@ -68,13 +68,13 @@ void motorStop()  {}
 void motorBrake() {}
 
 void motorHomeAndCalibrate() {
-    Serial.println("[SIM] Motor homed + speed known (simulated — instant).");
+    Serial.println("[SIM] Motor homed + speed known (simulated - instant).");
 }
 
 // ── Sensors ───────────────────────────────────────────────────────────────────
 
 void sensorsInit() {
-    Serial.println("[SIM] Sensors ready — wind 5 mph; storm 28 mph at 14:00–16:00 local");
+    Serial.println("[SIM] Sensors ready - wind 5 mph; storm 28 mph at 14:00–16:00 local");
 }
 
 float readWindSpeedMPH() {

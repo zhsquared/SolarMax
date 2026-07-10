@@ -8,7 +8,7 @@ static float    _windMPH     = 0.0f;
 
 void sensorsInit() {
     // Anemometer (Adafruit 1733): plain analog input on GPIO35. The pin is
-    // input-only, so there is nothing to drive — readWindSpeedMPH() samples it.
+    // input-only, so there is nothing to drive - readWindSpeedMPH() samples it.
     pinMode(PIN_ANEMOMETER, INPUT);
 
     pinMode(PIN_LDR_EAST, INPUT);

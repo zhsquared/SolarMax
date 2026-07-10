@@ -5,18 +5,18 @@ A lightweight terminal UI (FTXUI) that runs the **real control brain**
 track and demonstrate it live.
 
 It uses the *same* code as the firmware: the sun math (`lib/solar_math`) and the
-state machine (`lib/tracker_core`) are compiled straight in — only the clock,
+state machine (`lib/tracker_core`) are compiled straight in - only the clock,
 wind, and motor are simulated.
 
 **Two views (press `v` to switch):**
-- **Side view** — a flat E–W cross-section (sun ray + panel + normal).
-- **3D wireframe sky dome** — a rotatable hemisphere with the three seasonal
+- **Side view** - a flat E–W cross-section (sun ray + panel + normal).
+- **3D wireframe sky dome** - a rotatable hemisphere with the three seasonal
   sun-path arcs, the live sun, and the panel plate. This is the terminal cousin
   of the full 3D window in [`../sim3d`](../sim3d) (raylib), which is the one to
   use for presentations.
 
 A **Verify** panel (right) checks the live sun against known equator positions
-and lights a row green when it matches — press `0` for the equator demo, then
+and lights a row green when it matches - press `0` for the equator demo, then
 `1`/`2`/`3`/`4`.
 
 ## Build & run
@@ -59,7 +59,7 @@ cmake --build build -j4
 - **Roof angle:** change axis tilt/azimuth and watch the tracking adjust.
 
 ## Sanity checks (known sun positions)
-Press `0` for the **equator demo** (lat 0, lon 0), then a preset — the Verify
+Press `0` for the **equator demo** (lat 0, lon 0), then a preset - the Verify
 panel confirms these automatically:
 
 | Preset | Expect (equator) |

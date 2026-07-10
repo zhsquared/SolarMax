@@ -37,7 +37,7 @@ sequenceDiagram
 | State + transition note | `tracker_core` | logging / UI |
 
 ## Key principle: inputs in, decision out
-`tracker_core::step()` is a **pure function of its inputs** — give it the same time,
+`tracker_core::step()` is a **pure function of its inputs** - give it the same time,
 wind, and config and it always returns the same decision. It never reads hardware
 directly. That's why:
 - the **firmware** feeds it real sensor data,

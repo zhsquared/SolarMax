@@ -1,4 +1,4 @@
-# SolarMax — Breadboard Placement Map
+# SolarMax - Breadboard Placement Map
 
 This is the **single source of truth** for the breadboard layout. Both the diagram
 ([wiring_breadboard.pdf](wiring_breadboard.pdf)) and any Fritzing build are made from
@@ -6,7 +6,7 @@ this table, so wire endpoints can't drift.
 
 ## Breadboard basics (read once)
 - A breadboard has **4 long power rails**: two on top, two on bottom. Each rail is one
-  continuous metal strip — every hole in it is the same electrical point.
+  continuous metal strip - every hole in it is the same electrical point.
   - **Top red rail = +5 V**, **Top blue rail = GND**
   - **Bottom red rail = +3.3 V**, **Bottom blue rail = GND**
 - We **link the two blue (GND) rails** with a jumper at each end → that is the "common
@@ -17,7 +17,7 @@ this table, so wire endpoints can't drift.
 - **Columns below refer to the diagram's grid** (1 = far left). They are relative
   positions to keep wiring unambiguous, not specific to one breadboard brand.
 
-## Power rails — who feeds them
+## Power rails - who feeds them
 | Rail | Fed by | Notes |
 |------|--------|-------|
 | +5 V (top red) | Buck OUT+ **through a Schottky diode** → ESP32 5V pin | buck makes 5 V from 12 V; the diode lets the USB port stay pluggable for programming with no conflict (USB = programming only) |
@@ -89,7 +89,7 @@ this table, so wire endpoints can't drift.
 | CCW | C | 12 | → +3.3 V rail |
 | CCW | NO | 13 | → ESP GPIO33 |
 
-### LDR dividers  (3.3 V — LDR — node — 10 kΩ — GND; node → ADC)
+### LDR dividers  (3.3 V - LDR - node - 10 kΩ - GND; node → ADC)
 | part | cols | wire → |
 |------|------|--------|
 | LDR east | 14–15 | col14 → +3.3 V rail; node col15 → ESP GPIO36 |
@@ -97,7 +97,7 @@ this table, so wire endpoints can't drift.
 | LDR west | 18–19 | col18 → +3.3 V rail; node col19 → ESP GPIO39 |
 | 10 kΩ west | 19–20 | col20 → GND rail |
 
-### Anemometer + divider (bottom-right; S — 10 kΩ — node — 20 kΩ — GND)
+### Anemometer + divider (bottom-right; S - 10 kΩ - node - 20 kΩ - GND)
 | part | cols | wire → |
 |------|------|--------|
 | Anem 5V (power) | 26 | → +5 V rail (clear channel right of ESP) |
@@ -107,7 +107,7 @@ this table, so wire endpoints can't drift.
 | 20 kΩ | 22–23 | col22 → GND rail |
 
 ## Off-board (NOT on the breadboard)
-The motor draws ~15–19 A at stall — **never through a breadboard**. These use heavy wire
+The motor draws ~15–19 A at stall - **never through a breadboard**. These use heavy wire
 and the BTS7960 screw terminals directly:
 - 12 V PSU (+) → BTS7960 **B+** and buck **IN+**
 - 12 V PSU (−) → BTS7960 **B−** and buck **IN−**
@@ -121,7 +121,7 @@ and the BTS7960 screw terminals directly:
 | BTS7960 / IBT-2 driver | ⚠️ Community import |
 | DS3231 RTC module | ⚠️ Community import |
 | LM2596 buck converter | ⚠️ Community import |
-| QS-FS anemometer | ❌ No part — use a generic 3-pin header/sensor and label it |
+| QS-FS anemometer | ❌ No part - use a generic 3-pin header/sensor and label it |
 
 Import a `.fzpz` via **File → Open** (it lands in the MINE bin). For the anemometer, a generic
 3-pin connector stands in for power / GND / signal.

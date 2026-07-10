@@ -2,7 +2,7 @@
 
 ESP32 firmware for a single-axis solar tracker. It points the panel by **computing
 the sun's position from date, time, and location** (NOAA Solar Calculator) instead
-of using light sensors — with automatic high-wind stow and night park.
+of using light sensors - with automatic high-wind stow and night park.
 
 > **New teammate?** Start with the illustrated **[Flashing the ESP32 guide](docs/flashing_guide.pdf)**
 > (install VS Code + PlatformIO and flash the board), then use the build commands below.
@@ -31,7 +31,7 @@ Full docs are in **[docs/](docs/README.md)**:
 | `native` | `pio test -e native` | Unit tests on your Mac |
 
 ## Configuration
-All settings live in **[include/config.h](include/config.h)** — location, roof angle
+All settings live in **[include/config.h](include/config.h)** - location, roof angle
 (`AXIS_TILT_DEG` / `AXIS_AZIMUTH_DEG`), WiFi, thresholds, and pins. See
 [docs/usage.md](docs/usage.md#configuration--everything-is-in-includeconfigh).
 

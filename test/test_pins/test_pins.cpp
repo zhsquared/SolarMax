@@ -1,4 +1,4 @@
-// ESP32 pin-assignment validation — run with: pio test -e native
+// ESP32 pin-assignment validation - run with: pio test -e native
 //
 // This encodes the hardware constraints of the ESP32-WROOM-32 (DevKit V1) and
 // checks every pin in config.h against them. It cannot verify that a sensor is
@@ -13,7 +13,7 @@
 //
 // SOURCE OF THE RULES: Espressif ESP32 datasheet / ESP32-WROOM-32 datasheet and
 // the Arduino-ESP32 pin documentation. If you change boards, re-verify the sets
-// below against that board's datasheet — the test is only as correct as this data.
+// below against that board's datasheet - the test is only as correct as this data.
 
 #include <unity.h>
 #include <cstdio>
@@ -30,9 +30,9 @@ static bool inSet(int pin, const int* set, int n) {
 static const int FLASH_PINS[]    = {6, 7, 8, 9, 10, 11};
 // GPIO 34–39 are input-only: cannot be OUTPUT, have NO internal pull resistors.
 static const int INPUT_ONLY[]    = {34, 35, 36, 37, 38, 39};
-// ADC1 channels — the only ADC pins usable while WiFi is active.
+// ADC1 channels - the only ADC pins usable while WiFi is active.
 static const int ADC1_PINS[]     = {32, 33, 34, 35, 36, 37, 38, 39};
-// Boot strapping pins — usable but can glitch or affect boot; avoid where possible.
+// Boot strapping pins - usable but can glitch or affect boot; avoid where possible.
 static const int STRAPPING_PINS[]= {0, 2, 5, 12, 15};
 // Pins broken out on a typical 30/38-pin DevKit V1 (37/38 are NOT broken out).
 static const int VALID_GPIO[]    = {0,1,2,3,4,5,12,13,14,15,16,17,18,19,21,22,23,
@@ -71,7 +71,7 @@ void test_all_pins_exist_and_not_flash() {
     for (int i = 0; i < N(ALL_USED_PINS); i++) {
         int p = ALL_USED_PINS[i];
         TEST_ASSERT_TRUE_MESSAGE(!inSet(p, FLASH_PINS, N(FLASH_PINS)),
-            "Pin is tied to internal SPI flash (GPIO 6-11) — will not boot");
+            "Pin is tied to internal SPI flash (GPIO 6-11) - will not boot");
         TEST_ASSERT_TRUE_MESSAGE(inSet(p, VALID_GPIO, N(VALID_GPIO)),
             "Pin is not a usable GPIO on the DevKit V1");
     }
@@ -92,16 +92,16 @@ void test_outputs_not_input_only() {
     for (int i = 0; i < N(OUTPUT_PINS); i++) {
         TEST_ASSERT_FALSE_MESSAGE(
             inSet(OUTPUT_PINS[i], INPUT_ONLY, N(INPUT_ONLY)),
-            "An OUTPUT pin is on an input-only GPIO (34-39) — cannot drive it");
+            "An OUTPUT pin is on an input-only GPIO (34-39) - cannot drive it");
     }
 }
 
-// analogRead pins must be ADC1 — ADC2 silently fails while WiFi is on.
+// analogRead pins must be ADC1 - ADC2 silently fails while WiFi is on.
 void test_analog_pins_are_adc1() {
     for (int i = 0; i < N(ANALOG_PINS); i++) {
         TEST_ASSERT_TRUE_MESSAGE(
             inSet(ANALOG_PINS[i], ADC1_PINS, N(ADC1_PINS)),
-            "analogRead pin is not ADC1 — returns garbage while WiFi is active");
+            "analogRead pin is not ADC1 - returns garbage while WiFi is active");
     }
 }
 
@@ -135,7 +135,7 @@ void test_warn_on_strapping_pins() {
         if (inSet(ALL_USED_PINS[i], STRAPPING_PINS, N(STRAPPING_PINS))) {
             char msg[80];
             snprintf(msg, sizeof(msg),
-                     "WARNING: GPIO %d is a boot strapping pin — verify boot behavior",
+                     "WARNING: GPIO %d is a boot strapping pin - verify boot behavior",
                      ALL_USED_PINS[i]);
             TEST_MESSAGE(msg);
         }

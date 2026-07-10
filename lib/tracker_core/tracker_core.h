@@ -1,5 +1,5 @@
 #pragma once
-// SolarMax control brain — PURE logic, no Arduino/hardware dependencies.
+// SolarMax control brain - PURE logic, no Arduino/hardware dependencies.
 // Both the real firmware (main.cpp) and the interactive simulator call step(),
 // so the simulation runs the exact same state machine and tracking decisions.
 

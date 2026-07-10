@@ -13,7 +13,7 @@ void setUp()    {}
 void tearDown() {}
 
 // ── Test 1: Summer solstice solar noon ────────────────────────────────────────
-// 2026-06-21 ~19:30 UTC — sun is nearly overhead in Arizona.
+// 2026-06-21 ~19:30 UTC - sun is nearly overhead in Arizona.
 // Expected: elevation ≈ 80°, azimuth ≈ 180°, panel ≈ 0°.
 void test_summer_solstice_noon() {
     SolarAngles sa = calculateSolarPositionRaw(2026, 6, 21, 19.5,
@@ -25,7 +25,7 @@ void test_summer_solstice_noon() {
 }
 
 // ── Test 2: Winter solstice solar noon ────────────────────────────────────────
-// 2026-12-21 ~19:26 UTC — sun is at its lowest noon elevation for Tempe.
+// 2026-12-21 ~19:26 UTC - sun is at its lowest noon elevation for Tempe.
 // Expected: elevation ≈ 33°.
 void test_winter_solstice_noon() {
     SolarAngles sa = calculateSolarPositionRaw(2026, 12, 21, 19.43,
@@ -47,7 +47,7 @@ void test_spring_equinox_noon() {
     TEST_ASSERT_FLOAT_WITHIN(4.0f, 0.0f, sa.panelAngle);
 }
 
-// ── Test 4: Morning — panel clamps to east mechanical limit ──────────────────
+// ── Test 4: Morning - panel clamps to east mechanical limit ──────────────────
 // 2026-06-21 13:00 UTC = 6:00 AM local. Sun is low in the east; the tracker
 // formula would request ~-83° but the clamp stops it at PANEL_ANGLE_MIN.
 void test_morning_panel_at_east_limit() {
@@ -57,7 +57,7 @@ void test_morning_panel_at_east_limit() {
     TEST_ASSERT_FLOAT_WITHIN(0.5f, PANEL_ANGLE_MIN, sa.panelAngle);
 }
 
-// ── Test 5: Mid-afternoon — panel tilts west ──────────────────────────────────
+// ── Test 5: Mid-afternoon - panel tilts west ──────────────────────────────────
 // 2026-06-21 22:00 UTC = 3:00 PM local. Sun well into western sky.
 // Panel should be positive (tilted west) and elevation should be high.
 void test_afternoon_panel_west() {
@@ -68,7 +68,7 @@ void test_afternoon_panel_west() {
     TEST_ASSERT_TRUE(sa.panelAngle > 0.0f);
 }
 
-// ── Test 6: Night — sun below horizon ────────────────────────────────────────
+// ── Test 6: Night - sun below horizon ────────────────────────────────────────
 // 2026-06-21 04:00 UTC = previous evening local. Sun is well below horizon.
 void test_night_below_horizon() {
     SolarAngles sa = calculateSolarPositionRaw(2026, 6, 21, 4.0,
@@ -79,12 +79,12 @@ void test_night_below_horizon() {
 
 // ── Test 7: Sign convention (morning < 0, afternoon > 0) ─────────────────────
 // Panel angle must track east (negative) in morning and west (positive) in
-// afternoon — this is the fundamental behaviour of a N-S horizontal tracker.
+// afternoon - this is the fundamental behaviour of a N-S horizontal tracker.
 void test_panel_sign_convention() {
-    // 8:00 AM local = 15:00 UTC — sun east of south
+    // 8:00 AM local = 15:00 UTC - sun east of south
     SolarAngles morning = calculateSolarPositionRaw(2026, 6, 21, 15.0,
                                                     LATITUDE, LONGITUDE);
-    // 4:00 PM local = 23:00 UTC — sun west of south
+    // 4:00 PM local = 23:00 UTC - sun west of south
     SolarAngles afternoon = calculateSolarPositionRaw(2026, 6, 21, 23.0,
                                                       LATITUDE, LONGITUDE);
     TEST_ASSERT_TRUE(morning.panelAngle < 0.0f);

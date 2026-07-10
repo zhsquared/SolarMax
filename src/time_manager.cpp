@@ -17,14 +17,14 @@ bool syncNTP() {
     unsigned long start = millis();
     while (WiFi.status() != WL_CONNECTED) {
         if (millis() - start > WIFI_TIMEOUT_MS) {
-            Serial.println(" — FAILED (timeout)");
+            Serial.println(" - FAILED (timeout)");
             WiFi.disconnect(true);
             return false;
         }
         delay(500);
         Serial.print(".");
     }
-    Serial.println(" — connected");
+    Serial.println(" - connected");
 
     // SNTP sync (timezone = 0 because we always work in UTC internally)
     configTime(0, 0, NTP_SERVER1, NTP_SERVER2);
@@ -34,13 +34,13 @@ bool syncNTP() {
     unsigned long ntpStart = millis();
     while (!getLocalTime(&utcTm, 1000)) {
         if (millis() - ntpStart > NTP_TIMEOUT_MS) {
-            Serial.println(" — FAILED (timeout)");
+            Serial.println(" - FAILED (timeout)");
             WiFi.disconnect(true);
             return false;
         }
         Serial.print(".");
     }
-    Serial.println(" — OK");
+    Serial.println(" - OK");
 
     // getLocalTime with configTime(0,0,...) returns UTC
     if (_rtcOk) {
@@ -63,13 +63,13 @@ bool timeManagerInit() {
     if (_rtcOk) {
         Serial.println("[RTC] DS3231 found");
         if (_rtc.lostPower()) {
-            Serial.println("[RTC] Battery low or first boot — time not valid yet");
+            Serial.println("[RTC] Battery low or first boot - time not valid yet");
         } else {
             _timeOk = true;
             Serial.println("[RTC] Time valid from battery backup");
         }
     } else {
-        Serial.println("[RTC] DS3231 not detected — NTP only mode");
+        Serial.println("[RTC] DS3231 not detected - NTP only mode");
     }
 
     // Always try NTP; it updates the RTC if present

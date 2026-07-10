@@ -2,7 +2,7 @@
 
 SolarMax is a single-axis solar tracker. Instead of light sensors, it **computes
 the sun's position from date, time, and location** (NOAA algorithm) and points the
-panel to match — with automatic high-wind stow and night park.
+panel to match - with automatic high-wind stow and night park.
 
 ## Start here
 | Doc | What it covers |
@@ -16,7 +16,7 @@ panel to match — with automatic high-wind stow and night park.
 | [flashing_guide.pdf](flashing_guide.pdf) | **Illustrated step-by-step:** install VS Code + PlatformIO and flash the ESP32 (for new teammates) |
 | [clock_setup.pdf](clock_setup.pdf) | **After flashing:** one-time Wi-Fi/hotspot setup to set the RTC clock (fixes "No valid time source") |
 | [deployment_checklist.pdf](deployment_checklist.pdf) | **Before going outside:** set location & mounting angle (exact `config.h` lines) and verify the limit switches |
-| [panel_test_am33d.pdf](panel_test_am33d.pdf) | **Measure panel output** (tracking vs. not) with just the AstroAI AM33D multimeter — Voc/Isc |
+| [panel_test_am33d.pdf](panel_test_am33d.pdf) | **Measure panel output** (tracking vs. not) with just the AstroAI AM33D multimeter - Voc/Isc |
 | [simulation.md](simulation.md) | The two simulators and how the fake hardware works |
 
 ## Hardware docs (already in this folder)

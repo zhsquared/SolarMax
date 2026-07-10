@@ -5,7 +5,7 @@ void  motorInit();
 
 // Home to the limit switches and auto-measure the panel's travel speed. Call once
 // after motorInit(); it establishes the position reference used by driveToAngle().
-// (Replaces the potentiometer — position is tracked open-loop from here on.)
+// (Replaces the potentiometer - position is tracked open-loop from here on.)
 void  motorHomeAndCalibrate();
 
 // Current panel angle estimate in degrees. Dead-reckoned from motor run-time and

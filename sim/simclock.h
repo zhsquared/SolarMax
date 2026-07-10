@@ -1,5 +1,5 @@
 #pragma once
-// SolarMax — portable simulated UTC clock.
+// SolarMax - portable simulated UTC clock.
 //
 // The simulators track a moment in time and need to (a) advance it smoothly and
 // (b) read it back as calendar fields for the solar math. We deliberately avoid
@@ -57,7 +57,7 @@ inline SimDate fromEpoch(double sec) {
     return t;
 }
 
-// Decimal UTC hour (e.g. 19:30 -> 19.5) — what the solar math wants.
+// Decimal UTC hour (e.g. 19:30 -> 19.5) - what the solar math wants.
 inline double hourUTCof(const SimDate& t) {
     return t.hour + t.minute / 60.0 + t.second / 3600.0;
 }
