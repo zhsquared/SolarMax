@@ -28,6 +28,15 @@ static void driveCCW(uint8_t s) { ledcWrite(PWM_CHANNEL_R, 0); ledcWrite(PWM_CHA
 static bool limitWest() { return digitalRead(PIN_LIMIT_CW)  == LIMIT_ACTIVE; }  // at +MAX
 static bool limitEast() { return digitalRead(PIN_LIMIT_CCW) == LIMIT_ACTIVE; }  // at -MIN
 
+// Soft-start ramp: at the start of a move, ease the duty from MOTOR_PWM_START up to
+// the target over MOTOR_RAMP_MS so the panel doesn't lurch. Returns the duty to use
+// for a move that started sinceStartMs ago.
+static uint8_t rampedDuty(unsigned long sinceStartMs, uint8_t target) {
+    if (target <= MOTOR_PWM_START || sinceStartMs >= MOTOR_RAMP_MS) return target;
+    return (uint8_t)(MOTOR_PWM_START +
+                     (uint32_t)(target - MOTOR_PWM_START) * sinceStartMs / MOTOR_RAMP_MS);
+}
+
 void motorStop() {
     ledcWrite(PWM_CHANNEL_R, 0);
     ledcWrite(PWM_CHANNEL_L, 0);
@@ -60,9 +69,10 @@ void motorInit() {
 // timeout elapses. Returns true if the limit was reached.
 static bool runToLimit(bool west, unsigned long timeoutMs) {
     unsigned long start = millis();
-    west ? driveCW(MOTOR_PWM_MOVE) : driveCCW(MOTOR_PWM_MOVE);
     while (!(west ? limitWest() : limitEast())) {
         if (millis() - start > timeoutMs) { motorStop(); return false; }
+        uint8_t d = rampedDuty(millis() - start, MOTOR_PWM_MOVE);   // soft-start
+        west ? driveCW(d) : driveCCW(d);
         delay(5);
     }
     motorStop();
@@ -115,11 +125,12 @@ bool driveToAngle(float targetDeg) {
     if (runMs > DRIVE_TIMEOUT_MS) runMs = DRIVE_TIMEOUT_MS; // safety cap; big moves finish over 2 ticks
 
     unsigned long start = millis();
-    west ? driveCW(MOTOR_PWM_MOVE) : driveCCW(MOTOR_PWM_MOVE);
     while (millis() - start < runMs) {
         // Hit the mechanical end early → snap the estimate to it (drift correction).
         if (west && limitWest()) { motorStop(); estimatedAngle = PANEL_ANGLE_MAX; return true; }
         if (!west && limitEast()){ motorStop(); estimatedAngle = PANEL_ANGLE_MIN; return true; }
+        uint8_t d = rampedDuty(millis() - start, MOTOR_PWM_MOVE);   // soft-start
+        west ? driveCW(d) : driveCCW(d);
         delay(5);
     }
     motorStop();
