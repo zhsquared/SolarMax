@@ -12,8 +12,7 @@
 #include "solar_position.h"
 #include <math.h>
 
-// Small helpers: convert between degrees and radians. Trig functions in C work
-// in radians, but humans (and this file) mostly think in degrees.
+// Small helpers: convert between degrees and radians. Trig functions in C work in radians
 static inline double d2r(double d) { return d * M_PI / 180.0; }   // degrees -> radians
 static inline double r2d(double r) { return r * 180.0 / M_PI; }   // radians -> degrees
 
